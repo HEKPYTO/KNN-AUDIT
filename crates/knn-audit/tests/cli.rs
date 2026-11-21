@@ -169,6 +169,25 @@ fn unavailable_engine_lists_available_names() {
 }
 
 #[test]
+fn zero_repeat_is_a_usage_error() {
+    let output = command()
+        .args([
+            "run",
+            "--dataset",
+            MINI,
+            "--engine",
+            "reference",
+            "--repeat",
+            "0",
+        ])
+        .output()
+        .expect("repeat validation");
+    assert_eq!(output.status.code(), Some(2));
+    let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
+    assert!(stderr.contains("--repeat must be positive"));
+}
+
+#[test]
 fn qdrant_dispatch_reports_adapter_error() {
     let output = command()
         .args([

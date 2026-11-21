@@ -172,3 +172,38 @@ fn pgvector_unreachable_endpoint_is_an_adapter_error() {
         .is_err()
     );
 }
+
+#[test]
+fn qdrant_tie_heavy_prepare_keeps_the_same_id_set() {
+    if !enabled() {
+        return;
+    }
+    let ids: Vec<u64> = (0..128).collect();
+    let mut vectors = vec![0.0; ids.len() * 4];
+    for (index, vector) in vectors.chunks_mut(4).enumerate() {
+        vector[index % 4] = 1.0;
+    }
+    let mut engine = QdrantEngine::new(QDRANT_URL, unique_name("qdrant_ties")).expect("engine");
+    let view = CollectionView {
+        dim: 4,
+        ids: &ids,
+        vectors: &vectors,
+    };
+    engine.prepare(&view).expect("first prepare");
+    let first = engine.search(&[0.0; 4], ids.len()).expect("first search");
+    engine.prepare(&view).expect("second prepare");
+    let second = engine.search(&[0.0; 4], ids.len()).expect("second search");
+    let mut first_ids: Vec<u64> = first
+        .iter()
+        .map(|hit| hit.id.parse().expect("numeric id"))
+        .collect();
+    let mut second_ids: Vec<u64> = second
+        .iter()
+        .map(|hit| hit.id.parse().expect("numeric id"))
+        .collect();
+    first_ids.sort_unstable();
+    second_ids.sort_unstable();
+    assert_eq!(first_ids, ids);
+    assert_eq!(second_ids, first_ids);
+    engine.reset().expect("cleanup");
+}

@@ -57,6 +57,8 @@ struct RunArgs {
     database_url: String,
     #[arg(long, default_value = "errpedia_audit")]
     collection: String,
+    #[arg(long, default_value_t = 1)]
+    repeat: usize,
 }
 
 #[derive(Subcommand)]
@@ -138,7 +140,11 @@ fn run_command(args: RunArgs) -> ExitCode {
         engine_url,
         database_url,
         collection,
+        repeat,
     } = args;
+    if repeat == 0 {
+        return error_exit("--repeat must be positive");
+    }
     if let Some(count) = jobs {
         if count == 0 {
             return error_exit("--jobs must be positive");
@@ -160,6 +166,7 @@ fn run_command(args: RunArgs) -> ExitCode {
         engine,
         k,
         limit,
+        repeat,
     }) {
         Ok(result) => result,
         Err(error) => return error_exit(error),

@@ -142,9 +142,26 @@ impl Engine for QdrantEngine {
                     "distance": "Euclid",
                     "hnsw_config": { "m": 0 }
                 },
-                "optimizer_config": { "indexing_threshold": 0 }
+                "hnsw_config": { "m": 0 },
+                "optimizer_config": {
+                    "indexing_threshold": 0,
+                    "default_segment_number": 1,
+                    "flush_interval_sec": 1
+                }
             })),
         )?;
+        let info = self.send(Method::GET, &self.collection_path(), None)?;
+        let m = info
+            .pointer("/result/config/hnsw_config/m")
+            .and_then(Value::as_u64);
+        let indexed = info
+            .pointer("/result/indexed_vectors_count")
+            .and_then(Value::as_u64);
+        if m != Some(0) || indexed != Some(0) {
+            return Err(AdapterError::new(format!(
+                "qdrant config mismatch: hnsw m={m:?}, indexed vectors={indexed:?}"
+            )));
+        }
         let root = self.send(Method::GET, "/", None)?;
         self.version = Some(
             root.get("version")
