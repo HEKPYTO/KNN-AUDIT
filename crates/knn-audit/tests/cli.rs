@@ -344,6 +344,25 @@ fn pgvector_dispatch_reports_adapter_error() {
 }
 
 #[test]
+fn faiss_dispatch_reports_missing_interpreter() {
+    let output = command()
+        .args([
+            "run",
+            "--dataset",
+            MINI,
+            "--engine",
+            "faiss",
+            "--faiss-python",
+            "/definitely/missing/python",
+        ])
+        .output()
+        .expect("faiss dispatch");
+    assert_eq!(output.status.code(), Some(2));
+    let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
+    assert!(stderr.contains("faiss interpreter /definitely/missing/python failed to start"));
+}
+
+#[test]
 fn report_command_reads_json_and_renders_html() {
     let temp = tempfile::tempdir().expect("temp output");
     let json = temp.path().join("report.json");
