@@ -44,6 +44,8 @@ pub struct Summary {
     pub missing: usize,
     pub extra: usize,
     pub rank_swaps: usize,
+    #[serde(default)]
+    pub unstable: usize,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -65,6 +67,10 @@ pub struct Failure {
     pub rank_swaps: Vec<RankSwap>,
     pub distance_gap: Option<f64>,
     pub error: Option<String>,
+    #[serde(default)]
+    pub unstable: bool,
+    #[serde(default)]
+    pub unstable_actual_ids: Vec<Vec<u64>>,
 }
 
 impl Report {
@@ -99,15 +105,16 @@ impl Report {
         );
         let _ = write!(
             html,
-            "<table><tr><th>cases</th><th>passed</th><th>failed</th><th>errors</th><th>missing</th><th>extra</th><th>rank swaps</th></tr>\
-             <tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr></table>",
+            "<table><tr><th>cases</th><th>passed</th><th>failed</th><th>errors</th><th>missing</th><th>extra</th><th>rank swaps</th><th>unstable</th></tr>\
+             <tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr></table>",
             self.summary.cases,
             self.summary.passed,
             self.summary.failed,
             self.summary.errors,
             self.summary.missing,
             self.summary.extra,
-            self.summary.rank_swaps
+            self.summary.rank_swaps,
+            self.summary.unstable
         );
         html.push_str(
             "<h2>Categories</h2><table><tr><th>category</th><th>cases</th><th>failed</th></tr>",
@@ -166,6 +173,19 @@ impl Report {
                 }
                 if let Some(gap) = failure.distance_gap {
                     let _ = write!(html, "<br>distance gap: {gap}");
+                }
+                if failure.unstable {
+                    let sets = failure
+                        .unstable_actual_ids
+                        .iter()
+                        .map(|ids| format!("{ids:?}"))
+                        .collect::<Vec<_>>()
+                        .join(" / ");
+                    let _ = write!(
+                        html,
+                        "<br>unstable actual sets: <code>{}</code>",
+                        escape(&sets)
+                    );
                 }
                 html.push_str("</li>");
             }

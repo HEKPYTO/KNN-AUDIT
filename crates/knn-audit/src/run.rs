@@ -12,6 +12,7 @@ pub struct RunOptions {
     pub engine: Box<dyn Engine + Send + Sync>,
     pub k: usize,
     pub limit: Option<usize>,
+    pub repeat: usize,
 }
 
 pub struct RunResult {
@@ -22,11 +23,15 @@ pub struct RunResult {
 struct Outcome {
     category: String,
     failure: Option<Failure>,
+    unstable: bool,
 }
 
 pub fn run(options: RunOptions) -> Result<RunResult, DatasetError> {
     if options.k == 0 {
         return Err(DatasetError::new("k must be positive"));
+    }
+    if options.repeat == 0 {
+        return Err(DatasetError::new("repeat must be positive"));
     }
     let dataset = options.dataset;
     let cases: Vec<_> = dataset
@@ -48,32 +53,62 @@ pub fn run(options: RunOptions) -> Result<RunResult, DatasetError> {
         .par_iter()
         .zip(expected.par_iter())
         .map(|(case, expected_ids)| {
-            let failure = match engine.search(&case.query, options.k) {
-                Ok(hits) => match parse_ids(&hits) {
-                    Ok(actual_ids) => {
-                        let comparison =
-                            compare::compare(&case.query, &collection, expected_ids, &actual_ids);
-                        build_failure(case, expected_ids, &actual_ids, comparison, None)
-                    }
-                    Err(message) => build_failure(
-                        case,
-                        expected_ids,
-                        &[],
-                        Comparison::default(),
-                        Some(message),
+            let mut actual_sets: Vec<Vec<u64>> = Vec::new();
+            let mut failure: Option<Failure> = None;
+            for _ in 0..options.repeat {
+                let (actual_ids, found) = match engine.search(&case.query, options.k) {
+                    Ok(hits) => match parse_ids(&hits) {
+                        Ok(ids) => {
+                            let comparison =
+                                compare::compare(&case.query, &collection, expected_ids, &ids);
+                            let found = build_failure(case, expected_ids, &ids, comparison, None);
+                            (ids, found)
+                        }
+                        Err(message) => (
+                            Vec::new(),
+                            build_failure(
+                                case,
+                                expected_ids,
+                                &[],
+                                Comparison::default(),
+                                Some(message),
+                            ),
+                        ),
+                    },
+                    Err(error) => (
+                        Vec::new(),
+                        build_failure(
+                            case,
+                            expected_ids,
+                            &[],
+                            Comparison::default(),
+                            Some(error.message),
+                        ),
                     ),
-                },
-                Err(error) => build_failure(
-                    case,
-                    expected_ids,
-                    &[],
-                    Comparison::default(),
-                    Some(error.message),
-                ),
-            };
+                };
+                if !actual_sets.contains(&actual_ids) {
+                    actual_sets.push(actual_ids);
+                }
+                let decisive = found.as_ref().is_some_and(|item| {
+                    !item.missing_ids.is_empty()
+                        || !item.extra_ids.is_empty()
+                        || item.error.is_some()
+                });
+                if decisive || failure.is_none() {
+                    failure = found;
+                }
+            }
+            let unstable = actual_sets.len() > 1;
+            if let Some(item) = failure.as_mut() {
+                item.unstable = unstable;
+                if unstable {
+                    item.unstable_actual_ids = actual_sets.clone();
+                }
+            }
             Outcome {
                 category: case.category.clone(),
                 failure,
+                unstable,
             }
         })
         .collect();
@@ -119,6 +154,7 @@ pub fn run(options: RunOptions) -> Result<RunResult, DatasetError> {
         .count();
     let cases_count = outcomes.len();
     let failed = failures.len();
+    let unstable = outcomes.iter().filter(|outcome| outcome.unstable).count();
     let summary = Summary {
         cases: cases_count,
         passed: cases_count - failed,
@@ -127,6 +163,7 @@ pub fn run(options: RunOptions) -> Result<RunResult, DatasetError> {
         missing,
         extra,
         rank_swaps,
+        unstable,
     };
     let name = engine.name().to_string();
     let version = engine.version();
@@ -198,5 +235,7 @@ fn build_failure(
         rank_swaps,
         distance_gap: comparison.distance_gap,
         error,
+        unstable: false,
+        unstable_actual_ids: Vec::new(),
     })
 }

@@ -21,14 +21,21 @@ cargo run -p knn-audit -- dataset verify --dataset ../../.data/errpedia --sample
 cargo run -p knn-audit -- dataset verify --dataset ../../.data/errpedia --all
 cargo run -p knn-audit -- run --dataset ../../.data/errpedia --engine reference \
   --html results/reference.html --fail-on-mismatch
+cargo run -p knn-audit -- run --dataset ../../.data/errpedia --engine qdrant \
+  --repeat 3 --out results/qdrant.json
 cargo run -p knn-audit -- report --input results/reference.json --html results/reference.html
-```
 
-Defaults: `--sample 100`, `--k 10`, `--out results/<engine>.json`, and all
-logical CPUs for `--jobs`. `dataset verify` checks the pinned `base.csv` sha256
-when the loaded collection has the shipped benchmark's shape. A set-level tie
-at the k boundary is reported as missing/extra ids; it is never hidden by
+Defaults: `--sample 100`, `--k 10`, `--repeat 1`, `--out results/<engine>.json`,
+and all logical CPUs for `--jobs`. `dataset verify` checks the pinned `base.csv`
+sha256 when the loaded collection has the shipped benchmark's shape. A set-level
+tie at the k boundary is reported as missing/extra ids; it is never hidden by
 choosing a preferred id.
+
+`--repeat N` searches each case N times. A case fails when any repeat has
+missing ids, extra ids or an adapter error. `summary.unstable` counts cases whose
+distinct answers differ; each failure carries `unstable` and
+`unstable_actual_ids` with the distinct ordered id lists. With `N=1` the report
+has `unstable: 0` and no per-failure stability data.
 
 Exit codes: `0` clean, `1` with `--fail-on-mismatch` only for missing ids, extra
 ids or adapter errors, `2` usage, dataset, adapter or report errors. Rank swaps

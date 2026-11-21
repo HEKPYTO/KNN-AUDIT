@@ -3,6 +3,9 @@ Engine contract and the in-process exact control. This crate never depends on
 `knn-audit`.
 
 `qdrant` is a blocking REST adapter using Qdrant's exact search with plain L2.
+It pins one flat segment (`hnsw_config.m=0`, `indexing_threshold=0`,
+`default_segment_number=1`) but Qdrant does not guarantee tie order, so top-k
+sets can still change across reloads.
 `pgvector` is a synchronous Postgres adapter that loads vectors with `COPY`,
 disables index scans on every pooled connection, and orders by `<->` distance
 then id. Both report `L2` and replace their collection on `prepare`.
