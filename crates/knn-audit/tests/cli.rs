@@ -1,0 +1,207 @@
+use assert_cmd::Command;
+use serde_json::Value;
+use std::fs;
+
+const MINI: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../fixtures/mini");
+const TIES: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../fixtures/ties");
+
+fn command() -> Command {
+    Command::new(env!("CARGO_BIN_EXE_knn-audit"))
+}
+
+fn stdout(output: &std::process::Output) -> String {
+    String::from_utf8(output.stdout.clone()).expect("utf8 stdout")
+}
+
+#[test]
+fn dataset_verify_sample_exits_clean() {
+    let output = command()
+        .args(["dataset", "verify", "--dataset", MINI, "--sample", "2"])
+        .output()
+        .expect("verify command");
+    assert!(output.status.success());
+    assert!(stdout(&output).contains("0/2 cases mismatch"));
+}
+
+#[test]
+fn dataset_verify_all_exits_clean() {
+    let output = command()
+        .args(["dataset", "verify", "--dataset", MINI, "--all"])
+        .output()
+        .expect("verify all");
+    assert!(output.status.success());
+    assert!(stdout(&output).contains("0/8 cases mismatch"));
+}
+
+#[test]
+fn conflicting_sample_flags_are_usage_errors() {
+    let output = command()
+        .args([
+            "dataset",
+            "verify",
+            "--dataset",
+            MINI,
+            "--sample",
+            "2",
+            "--all",
+        ])
+        .output()
+        .expect("conflicting flags");
+    assert_eq!(output.status.code(), Some(2));
+}
+
+#[test]
+fn reference_run_writes_report_and_html() {
+    let temp = tempfile::tempdir().expect("temp output");
+    let json = temp.path().join("reference.json");
+    let html = temp.path().join("reference.html");
+    let output = command()
+        .args([
+            "run",
+            "--dataset",
+            MINI,
+            "--engine",
+            "reference",
+            "--limit",
+            "20",
+            "--out",
+            json.to_str().expect("json path"),
+            "--html",
+            html.to_str().expect("html path"),
+        ])
+        .output()
+        .expect("run command");
+    assert!(output.status.success(), "{}", stdout(&output));
+    let text = stdout(&output);
+    assert!(text.contains("0/8 cases mismatch"), "{text}");
+    let report: Value =
+        serde_json::from_slice(&fs::read(&json).expect("report json")).expect("parse report");
+    assert_eq!(report["schema"], "knn-audit/v1");
+    assert_eq!(report["engine"]["name"], "reference");
+    assert_eq!(report["engine"]["exact_mode"], true);
+    assert_eq!(report["summary"]["cases"], 8);
+    assert_eq!(report["summary"]["failed"], 0);
+    assert_eq!(report["failures"].as_array().expect("failures").len(), 0);
+    assert_eq!(
+        report["categories"].as_array().expect("categories").len(),
+        1
+    );
+    let markup = fs::read_to_string(&html).expect("html");
+    assert!(markup.contains("knn-audit scorecard"));
+    assert!(!markup.contains("<script"));
+}
+
+#[test]
+fn reference_run_handles_ties_and_extreme_values() {
+    let temp = tempfile::tempdir().expect("temp output");
+    let json = temp.path().join("ties.json");
+    let output = command()
+        .args([
+            "run",
+            "--dataset",
+            TIES,
+            "--engine",
+            "reference",
+            "--out",
+            json.to_str().expect("json path"),
+        ])
+        .output()
+        .expect("ties run");
+    assert!(output.status.success(), "{}", stdout(&output));
+    assert!(stdout(&output).contains("0/4 cases mismatch"));
+}
+
+#[test]
+fn fail_on_mismatch_controls_exit_code() {
+    let temp = tempfile::tempdir().expect("temp dataset");
+    let data = temp.path().join("data");
+    let group = data.join("g");
+    fs::create_dir_all(&group).expect("group");
+    fs::write(data.join("base.csv"), "0,0\n1,0\n2,0\n").expect("base");
+    fs::write(
+        group.join("bad.json"),
+        "{\"case_id\":\"bad\",\"category\":\"g\",\"query_row\":0,\"query\":[0,0],\"gt_ids\":[1,2]}",
+    )
+    .expect("case");
+    let out = temp.path().join("bad.json");
+    let base_args = [
+        "run",
+        "--dataset",
+        temp.path().to_str().expect("dataset path"),
+        "--engine",
+        "reference",
+        "--k",
+        "2",
+        "--out",
+        out.to_str().expect("out path"),
+    ];
+    let clean = command()
+        .args(base_args)
+        .output()
+        .expect("run without flag");
+    assert_eq!(clean.status.code(), Some(0));
+    let failing = command()
+        .args(base_args)
+        .arg("--fail-on-mismatch")
+        .output()
+        .expect("run with flag");
+    assert_eq!(failing.status.code(), Some(1));
+    let report: Value =
+        serde_json::from_slice(&fs::read(&out).expect("report")).expect("parse report");
+    assert_eq!(report["summary"]["failed"], 1);
+    assert_eq!(report["failures"][0]["case_id"], "bad");
+    assert_eq!(report["failures"][0]["missing_ids"], serde_json::json!([2]));
+}
+
+#[test]
+fn unavailable_engine_is_an_adapter_error() {
+    let output = command()
+        .args(["run", "--dataset", MINI, "--engine", "qdrant"])
+        .output()
+        .expect("unavailable engine");
+    assert_eq!(output.status.code(), Some(2));
+}
+
+#[test]
+fn report_command_reads_json_and_renders_html() {
+    let temp = tempfile::tempdir().expect("temp output");
+    let json = temp.path().join("report.json");
+    command()
+        .args([
+            "run",
+            "--dataset",
+            MINI,
+            "--engine",
+            "reference",
+            "--out",
+            json.to_str().expect("json path"),
+        ])
+        .assert()
+        .success();
+    let html = temp.path().join("report.html");
+    let output = command()
+        .args([
+            "report",
+            "--input",
+            json.to_str().expect("input"),
+            "--html",
+            html.to_str().expect("html"),
+        ])
+        .output()
+        .expect("report command");
+    assert!(output.status.success());
+    assert!(stdout(&output).contains("knn-audit/v1"));
+    assert!(fs::read_to_string(&html).expect("html").contains("<table>"));
+}
+
+#[test]
+fn report_command_rejects_unknown_schema() {
+    let temp = tempfile::tempdir().expect("temp report");
+    let path = temp.path().join("report.json");
+    fs::write(&path, "{\"schema\":\"other\"}").expect("report");
+    let output = command()
+        .args(["report", "--input", path.to_str().expect("path")])
+        .output()
+        .expect("report command");
+    assert_eq!(output.status.code(), Some(2));
+}

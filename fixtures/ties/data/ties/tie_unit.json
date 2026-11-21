@@ -1,0 +1,7 @@
+{
+  "case_id": "tie_unit",
+  "category": "ties",
+  "query_row": 1,
+  "query": [1, 0, 0, 0],
+  "gt_ids": [1, 6, 0, 5, 7, 3, 4, 2, 8, 10]
+}
