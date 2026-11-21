@@ -55,7 +55,7 @@ fn exact_ties_and_near_ties_are_distinguished() {
 }
 
 #[test]
-fn f64_interval_overlaps_exact_value_on_random_inputs() {
+fn f64_interval_overlaps_exact_two_sided() {
     let mut state = 0x1234_5678_9abc_def0_u64;
     for case in 0..500 {
         let mut query = [0.0_f32; 8];
@@ -78,8 +78,9 @@ fn f64_interval_overlaps_exact_value_on_random_inputs() {
         let computed = squared_l2_f64(&query, &vector);
         let (interval_lower, interval_upper) = distance_interval(computed, query.len());
         assert!(
-            interval_upper >= exact_lower && interval_lower <= exact_upper,
-            "case {case}: f64 interval [{interval_lower}, {interval_upper}] missed exact [{exact_lower}, {exact_upper}]"
+            exact.cmp_f64(interval_lower) != Ordering::Less
+                && exact.cmp_f64(interval_upper) != Ordering::Greater,
+            "case {case}: f64 interval [{interval_lower}, {interval_upper}] does not contain exact value in [{exact_lower}, {exact_upper}]"
         );
     }
 }

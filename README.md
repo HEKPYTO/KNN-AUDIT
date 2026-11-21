@@ -35,39 +35,20 @@ git clone --depth 1 https://github.com/dynos01/errpedia .data/errpedia
 ./target/release/knn-audit run --dataset .data/errpedia --engine reference
 ```
 
-Run against a live engine:
-
-```sh
-docker run -d --name errpedia-qdrant -p 6333:6333 qdrant/qdrant:v1.20-unprivileged
-./target/release/knn-audit run --dataset .data/errpedia --engine qdrant \
-  --engine-url http://127.0.0.1:6333 --html results/qdrant.html --fail-on-mismatch
-
-docker run -d --name errpedia-pg -e POSTGRES_PASSWORD=postgres -p 5432:5432 \
-  pgvector/pgvector:pg19
-./target/release/knn-audit run --dataset .data/errpedia --engine pgvector \
-  --database-url postgres://postgres:postgres@127.0.0.1:5432/postgres \
-  --html results/pgvector.html --fail-on-mismatch
-```
-
-FAISS runs through its Python distribution:
-
-```sh
-uv run --python 3.12 --with faiss-cpu==1.12.0 \
-  ./target/release/knn-audit run --dataset .data/errpedia --engine faiss
-```
-
 ## Commands
 
 ```
 knn-audit dataset verify --dataset <dir> [--sample N | --all] [--k 10]
-knn-audit run --dataset <dir> --engine reference|qdrant|pgvector|faiss [options]
+knn-audit run --dataset <dir> --engine reference [options]
 knn-audit report --input results/run.json --html results/run.html
 ```
 
 `run` writes `results/<engine>.json` (`knn-audit/v1`), prints a category table,
-and exits `1` on a conformance failure when `--fail-on-mismatch` is set. Every
-failure carries the query vector, expected ids, actual ids, and the dataset
-sha256 so the case can be reproduced without the dataset copy that produced it.
+and exits `1` when `--fail-on-mismatch` is set and the answer has missing ids,
+extra ids, or adapter errors. Rank swaps are reported in the table, categories
+and report but do not fail the run. Every failure carries the query vector,
+expected ids, actual ids, and the dataset sha256 so the case can be reproduced
+without the dataset copy that produced it.
 
 ## Dataset
 

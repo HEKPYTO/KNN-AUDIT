@@ -99,3 +99,21 @@ fn real_dataset_reproduces_sampled_ground_truth() {
         .expect("verify");
     assert_eq!(summary.mismatches, Vec::<String>::new());
 }
+
+#[test]
+fn real_absorb_001_matches_exact_kernel() {
+    let Some(path) = real_dataset() else {
+        return;
+    };
+    let dataset = Dataset::load(&path).expect("real dataset");
+    let case = dataset
+        .cases
+        .iter()
+        .find(|case| case.case_id == "absorb_001")
+        .expect("absorb_001 case");
+    let mut expected = case.gt_ids.clone();
+    let mut actual = knn_audit::exact::top_k_exact(&case.query, &dataset.collection(), 10);
+    expected.sort_unstable();
+    actual.sort_unstable();
+    assert_eq!(actual, expected);
+}

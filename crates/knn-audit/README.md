@@ -30,8 +30,9 @@ when the loaded collection has the shipped benchmark's shape. A set-level tie
 at the k boundary is reported as missing/extra ids; it is never hidden by
 choosing a preferred id.
 
-Exit codes: `0` clean, `1` mismatches only with `--fail-on-mismatch`, `2` usage,
-dataset, adapter or report errors.
+Exit codes: `0` clean, `1` with `--fail-on-mismatch` only for missing ids, extra
+ids or adapter errors, `2` usage, dataset, adapter or report errors. Rank swaps
+are reported but never fail the run.
 
 ## Tests
 

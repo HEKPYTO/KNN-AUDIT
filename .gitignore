@@ -5,6 +5,7 @@ AGENTS.md
 PAPER.md
 docs/
 results/*.html
+results/*.json
 *.hprof
 .DS_Store
 .claude/

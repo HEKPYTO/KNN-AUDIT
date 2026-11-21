@@ -1,9 +1,11 @@
 use assert_cmd::Command;
 use serde_json::Value;
 use std::fs;
+use std::path::PathBuf;
 
 const MINI: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../fixtures/mini");
 const TIES: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../fixtures/ties");
+const ORDER_ONLY: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../fixtures/order-only");
 
 fn command() -> Command {
     Command::new(env!("CARGO_BIN_EXE_knn-audit"))
@@ -204,4 +206,94 @@ fn report_command_rejects_unknown_schema() {
         .output()
         .expect("report command");
     assert_eq!(output.status.code(), Some(2));
+}
+
+#[test]
+fn rank_swap_only_does_not_fail_with_flag() {
+    let temp = tempfile::tempdir().expect("temp output");
+    let out = temp.path().join("order.json");
+    let output = command()
+        .args([
+            "run",
+            "--dataset",
+            ORDER_ONLY,
+            "--engine",
+            "reference",
+            "--k",
+            "3",
+            "--out",
+            out.to_str().expect("out path"),
+            "--fail-on-mismatch",
+        ])
+        .output()
+        .expect("order-only run");
+    assert_eq!(output.status.code(), Some(0), "{}", stdout(&output));
+    let text = stdout(&output);
+    assert!(
+        text.contains("1/1 cases mismatch (0 missing, 0 extra, 2 rank swaps)"),
+        "{text}"
+    );
+    let report: Value =
+        serde_json::from_slice(&fs::read(&out).expect("report")).expect("parse report");
+    assert_eq!(report["summary"]["failed"], 1);
+    assert_eq!(report["summary"]["missing"], 0);
+    assert_eq!(report["summary"]["extra"], 0);
+    assert_eq!(report["summary"]["rank_swaps"], 2);
+    assert_eq!(report["failures"][0]["rank_swaps"][0]["expected_rank"], 2);
+}
+
+fn real_dataset() -> Option<PathBuf> {
+    let mut candidates = Vec::new();
+    if let Some(path) = std::env::var_os("ERRPEDIA_DATASET") {
+        candidates.push(PathBuf::from(path));
+    }
+    candidates.extend([
+        PathBuf::from("../../../.data/errpedia"),
+        PathBuf::from(".data/errpedia"),
+    ]);
+    candidates
+        .into_iter()
+        .find(|path| path.join("data").join("base.csv").exists())
+}
+
+#[test]
+fn real_dataset_verify_all_reports_clean() {
+    let Some(path) = real_dataset() else {
+        return;
+    };
+    let output = command()
+        .args([
+            "dataset",
+            "verify",
+            "--dataset",
+            path.to_str().expect("dataset path"),
+            "--all",
+        ])
+        .output()
+        .expect("verify all");
+    assert_eq!(output.status.code(), Some(0), "{}", stdout(&output));
+    assert!(stdout(&output).contains("0/1616 cases mismatch"));
+}
+
+#[test]
+fn real_reference_run_reports_clean() {
+    let Some(path) = real_dataset() else {
+        return;
+    };
+    let temp = tempfile::tempdir().expect("temp output");
+    let out = temp.path().join("reference.json");
+    let output = command()
+        .args([
+            "run",
+            "--dataset",
+            path.to_str().expect("dataset path"),
+            "--engine",
+            "reference",
+            "--out",
+            out.to_str().expect("out path"),
+        ])
+        .output()
+        .expect("reference run");
+    assert_eq!(output.status.code(), Some(0), "{}", stdout(&output));
+    assert!(stdout(&output).contains("0/1616 cases mismatch (0 missing, 0 extra, 0 rank swaps)"));
 }
