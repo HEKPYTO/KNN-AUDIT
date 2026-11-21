@@ -4,7 +4,6 @@
     "name": "knn-audit",
     "version": "0.1.0"
   },
-  "created_at": "2026-11-21T08:04:17Z",
   "dataset": {
     "base_sha256": "c0158e652bf8bcd4ad8a42aa8eb642325ca76897109431241ada0ac7490d4beb",
     "base_rows": 22501,
@@ -24,152 +23,151 @@
     }
   },
   "k": 10,
-  "repeat": 3,
-  "runs": [
-    {
-      "failed": 546,
-      "errors": 0,
-      "missing": 1230,
-      "extra": 1230,
-      "rank_swaps": 547
-    },
-    {
-      "failed": 546,
-      "errors": 0,
-      "missing": 1230,
-      "extra": 1230,
-      "rank_swaps": 547
-    },
-    {
-      "failed": 546,
-      "errors": 0,
-      "missing": 1230,
-      "extra": 1230,
-      "rank_swaps": 547
-    }
-  ],
   "summary": {
     "cases": 1616,
     "passed": 1070,
-    "failed": 546,
+    "failed": 542,
+    "order_only": 4,
     "errors": 0,
     "missing": 1230,
     "extra": 1230,
     "rank_swaps": 547,
     "unstable": 0,
-    "failed_all": 546
+    "failed_all": 542
   },
   "categories": [
     {
       "category": "absorb",
       "cases": 150,
-      "failed": 70
+      "failed": 70,
+      "order_only": 0
     },
     {
       "category": "collision_ladder",
       "cases": 83,
-      "failed": 83
+      "failed": 81,
+      "order_only": 2
     },
     {
       "category": "decimal_ingest",
       "cases": 12,
-      "failed": 0
+      "failed": 0,
+      "order_only": 0
     },
     {
       "category": "diff_overflow",
       "cases": 6,
-      "failed": 6
+      "failed": 6,
+      "order_only": 0
     },
     {
       "category": "exp_similarity",
       "cases": 8,
-      "failed": 0
+      "failed": 0,
+      "order_only": 0
     },
     {
       "category": "fp16_absorb",
       "cases": 6,
-      "failed": 0
+      "failed": 0,
+      "order_only": 0
     },
     {
       "category": "fp16_overflow",
       "cases": 9,
-      "failed": 0
+      "failed": 0,
+      "order_only": 0
     },
     {
       "category": "fp16_term",
       "cases": 14,
-      "failed": 0
+      "failed": 0,
+      "order_only": 0
     },
     {
       "category": "fp16_underflow",
       "cases": 96,
-      "failed": 0
+      "failed": 0,
+      "order_only": 0
     },
     {
       "category": "max_sentinel",
       "cases": 6,
-      "failed": 2
+      "failed": 2,
+      "order_only": 0
     },
     {
       "category": "neartie",
       "cases": 405,
-      "failed": 131
+      "failed": 131,
+      "order_only": 0
     },
     {
       "category": "normdot_cancel",
       "cases": 49,
-      "failed": 1
+      "failed": 1,
+      "order_only": 0
     },
     {
       "category": "normdot_overflow",
       "cases": 20,
-      "failed": 0
+      "failed": 0,
+      "order_only": 0
     },
     {
       "category": "order_disc",
       "cases": 480,
-      "failed": 111
+      "failed": 111,
+      "order_only": 0
     },
     {
       "category": "overflow_inf",
       "cases": 19,
-      "failed": 19
+      "failed": 19,
+      "order_only": 0
     },
     {
       "category": "sim_saturation",
       "cases": 30,
-      "failed": 0
+      "failed": 0,
+      "order_only": 0
     },
     {
       "category": "sq_round",
       "cases": 59,
-      "failed": 33
+      "failed": 33,
+      "order_only": 0
     },
     {
       "category": "sq_subnormal",
       "cases": 28,
-      "failed": 17
+      "failed": 17,
+      "order_only": 0
     },
     {
       "category": "sq_underflow",
       "cases": 50,
-      "failed": 21
+      "failed": 21,
+      "order_only": 0
     },
     {
       "category": "sqrt",
       "cases": 28,
-      "failed": 7
+      "failed": 7,
+      "order_only": 0
     },
     {
       "category": "sub",
       "cases": 58,
-      "failed": 45
+      "failed": 43,
+      "order_only": 2
     }
   ],
   "failures": [
     {
       "case_id": "absorb_002",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         68,
         69,
@@ -208,11 +206,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_003",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         244,
         245,
@@ -251,11 +251,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_005",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         502,
         503,
@@ -294,11 +296,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_006",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         557,
         558,
@@ -337,11 +341,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_009",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         815,
         816,
@@ -380,11 +386,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_011",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         1266,
         1267,
@@ -423,11 +431,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_012",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         1321,
         1322,
@@ -466,11 +476,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_015",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         1629,
         1630,
@@ -509,11 +521,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_016",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         1808,
         1809,
@@ -552,11 +566,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_017",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         2006,
         2007,
@@ -595,11 +611,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_024",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         2508,
         2509,
@@ -638,11 +656,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_025",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         2585,
         2586,
@@ -681,11 +701,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_030",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         2943,
         2944,
@@ -724,11 +746,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_034",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         3097,
         3098,
@@ -767,11 +791,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_035",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         3306,
         3307,
@@ -810,11 +836,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_038",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         3742,
         3743,
@@ -853,11 +881,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_044",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         3973,
         3974,
@@ -896,11 +926,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_045",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         4017,
         4018,
@@ -939,11 +971,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_047",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         4491,
         4492,
@@ -982,11 +1016,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_050",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         5838,
         5839,
@@ -1025,11 +1061,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_052",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         6124,
         6125,
@@ -1068,11 +1106,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_053",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         6168,
         6169,
@@ -1111,11 +1151,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_054",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         6179,
         6180,
@@ -1154,11 +1196,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_055",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         6330,
         6331,
@@ -1197,11 +1241,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_058",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         7336,
         7337,
@@ -1240,11 +1286,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_059",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         7380,
         7381,
@@ -1283,11 +1331,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_065",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         8070,
         8071,
@@ -1326,11 +1376,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_069",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         8290,
         8291,
@@ -1369,11 +1421,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_070",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         8758,
         8759,
@@ -1412,11 +1466,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_072",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         9208,
         9209,
@@ -1455,11 +1511,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_073",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         9302,
         9303,
@@ -1498,11 +1556,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_074",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         9335,
         9336,
@@ -1541,11 +1601,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_075",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         9390,
         9391,
@@ -1584,11 +1646,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_077",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         10147,
         10148,
@@ -1627,11 +1691,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_078",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         10191,
         10192,
@@ -1670,11 +1736,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_084",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         11084,
         11085,
@@ -1713,11 +1781,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_086",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         11458,
         11459,
@@ -1756,11 +1826,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_087",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         11546,
         11547,
@@ -1799,11 +1871,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_088",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         11917,
         11918,
@@ -1842,11 +1916,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_089",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         12220,
         12221,
@@ -1885,11 +1961,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_090",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         12676,
         12677,
@@ -1928,11 +2006,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_091",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         12785,
         12786,
@@ -1971,11 +2051,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_092",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         13207,
         13208,
@@ -2014,11 +2096,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_094",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         13273,
         13274,
@@ -2057,11 +2141,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_096",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         13586,
         13587,
@@ -2100,11 +2186,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_098",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         13717,
         13718,
@@ -2143,11 +2231,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_102",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         14738,
         14739,
@@ -2186,11 +2276,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_103",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         14804,
         14805,
@@ -2229,11 +2321,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_105",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         14992,
         14993,
@@ -2272,11 +2366,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_112",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         15600,
         15601,
@@ -2315,11 +2411,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_115",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         15853,
         15854,
@@ -2358,11 +2456,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_119",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         16825,
         16826,
@@ -2401,11 +2501,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_120",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         16924,
         16925,
@@ -2444,11 +2546,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_122",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         17415,
         17416,
@@ -2487,11 +2591,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_123",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         17569,
         17570,
@@ -2530,11 +2636,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_124",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         17635,
         17636,
@@ -2573,11 +2681,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_125",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         17657,
         17658,
@@ -2616,11 +2726,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_126",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         17767,
         17768,
@@ -2659,11 +2771,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_129",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         17910,
         17911,
@@ -2702,11 +2816,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_130",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         17921,
         17922,
@@ -2745,11 +2861,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_132",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         18198,
         18199,
@@ -2788,11 +2906,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_133",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         18651,
         18652,
@@ -2831,11 +2951,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_138",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         19263,
         19264,
@@ -2874,11 +2996,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_139",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         19373,
         19374,
@@ -2917,11 +3041,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_142",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         19659,
         19660,
@@ -2960,11 +3086,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_144",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         19725,
         19726,
@@ -3003,11 +3131,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_146",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         19780,
         19781,
@@ -3046,11 +3176,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_148",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         20426,
         20427,
@@ -3089,11 +3221,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_149",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         20448,
         20449,
@@ -3132,11 +3266,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "absorb_150",
       "category": "absorb",
+      "severity": "mismatch",
       "expected_ids": [
         20459,
         20460,
@@ -3175,11 +3311,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_01",
       "category": "collision_ladder",
+      "severity": "order_only",
       "expected_ids": [
         325,
         321,
@@ -3258,18 +3396,16 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": 0.0,
+      "distance_gap": null,
       "error": null,
-      "failed_repetitions": [
-        1,
-        2,
-        3
-      ],
+      "failed_repetitions": [],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_02",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         412,
         424,
@@ -3342,11 +3478,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_03",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         645,
         665,
@@ -3407,11 +3545,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_04",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         798,
         811,
@@ -3482,11 +3622,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_05",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         1662,
         1668,
@@ -3571,11 +3713,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_06",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         2257,
         2287,
@@ -3627,18 +3771,20 @@
           "actual_rank": 9
         }
       ],
-      "distance_gap": 1181912924160.0,
+      "distance_gap": 10050045476864.0,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_07",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         3356,
         3360,
@@ -3699,11 +3845,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_08",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         4167,
         4132,
@@ -3767,11 +3915,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_09",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         4600,
         4599,
@@ -3825,18 +3975,20 @@
           "actual_rank": 8
         }
       ],
-      "distance_gap": 4.603661259838282e-33,
+      "distance_gap": 1.0459522652335804e-32,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_10",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         4796,
         4752,
@@ -3890,18 +4042,20 @@
           "actual_rank": 1
         }
       ],
-      "distance_gap": 0.000016226120351348072,
+      "distance_gap": 0.000048888608944253065,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_11",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         4937,
         4935,
@@ -3986,11 +4140,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_12",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         5023,
         4993,
@@ -4054,11 +4210,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_13",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         5343,
         5335,
@@ -4119,11 +4277,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_14",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         5646,
         5637,
@@ -4180,11 +4340,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_15",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         6292,
         6308,
@@ -4239,18 +4401,20 @@
           "actual_rank": 6
         }
       ],
-      "distance_gap": 7.362799483294522e-17,
+      "distance_gap": 1.3027738629174543e-16,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_16",
       "category": "collision_ladder",
+      "severity": "order_only",
       "expected_ids": [
         6637,
         6638,
@@ -4304,18 +4468,16 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": -4188783247360.0,
+      "distance_gap": null,
       "error": null,
-      "failed_repetitions": [
-        1,
-        2,
-        3
-      ],
+      "failed_repetitions": [],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_17",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         6993,
         7018,
@@ -4379,11 +4541,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_18",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         7157,
         7194,
@@ -4433,18 +4597,20 @@
         7098
       ],
       "rank_swaps": [],
-      "distance_gap": 3.8441222726299015e-27,
+      "distance_gap": 8.207317717197151e-27,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_19",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         7643,
         7552,
@@ -4501,11 +4667,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_20",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         7811,
         7812,
@@ -4582,11 +4750,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_21",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         8013,
         8014,
@@ -4647,11 +4817,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_22",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         8624,
         8655,
@@ -4721,11 +4893,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_23",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         8916,
         8957,
@@ -4782,11 +4956,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_24",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         9110,
         9089,
@@ -4847,18 +5023,20 @@
           "actual_rank": 8
         }
       ],
-      "distance_gap": 4.241956999010106e-28,
+      "distance_gap": 1.0520385098977984e-27,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_25",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         9277,
         9258,
@@ -4922,11 +5100,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_26",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         9736,
         9779,
@@ -4976,18 +5156,20 @@
         9617
       ],
       "rank_swaps": [],
-      "distance_gap": 689660672.0,
+      "distance_gap": 3656128000.0,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_27",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         9842,
         9851,
@@ -5044,18 +5226,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": -1.979044656629141e-33,
+      "distance_gap": 3.3818323012528377e-32,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_28",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         10030,
         10018,
@@ -5112,11 +5296,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_29",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         10278,
         10275,
@@ -5179,18 +5365,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": -1.1377050582710585e-25,
+      "distance_gap": 2.6274792315803203e-24,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_30",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         10334,
         10348,
@@ -5250,18 +5438,20 @@
           "actual_rank": 5
         }
       ],
-      "distance_gap": 647994365968384.0,
+      "distance_gap": 687896038211584.0,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_31",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         10448,
         10432,
@@ -5311,18 +5501,20 @@
         10363
       ],
       "rank_swaps": [],
-      "distance_gap": 14983027.0,
+      "distance_gap": 25885063.0,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_32",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         10603,
         10587,
@@ -5386,11 +5578,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_33",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         10767,
         10787,
@@ -5447,18 +5641,20 @@
           "actual_rank": 7
         }
       ],
-      "distance_gap": 41746464.0,
+      "distance_gap": 47436444.0,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_34",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         12062,
         12032,
@@ -5508,18 +5704,20 @@
         12023
       ],
       "rank_swaps": [],
-      "distance_gap": 509617152.0,
+      "distance_gap": 890152576.0,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_35",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         12204,
         12201,
@@ -5571,18 +5769,20 @@
           "actual_rank": 1
         }
       ],
-      "distance_gap": 18941664.0,
+      "distance_gap": 72145440.0,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_36",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         12288,
         12275,
@@ -5639,18 +5839,20 @@
           "actual_rank": 6
         }
       ],
-      "distance_gap": 60184.65625,
+      "distance_gap": 669630.46875,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_37",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         12446,
         12507,
@@ -5700,18 +5902,20 @@
         12406
       ],
       "rank_swaps": [],
-      "distance_gap": 1.1064695585261989e-22,
+      "distance_gap": 3.0018414216937155e-22,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_38",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         12776,
         12781,
@@ -5796,11 +6000,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_39",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         12981,
         12997,
@@ -5853,18 +6059,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": -2.5309498337893623e-32,
+      "distance_gap": 3.392437317412369e-31,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_40",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         13127,
         13133,
@@ -5916,18 +6124,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": -2.427429091067523e-11,
+      "distance_gap": 3.367348205829401e-10,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_41",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         13354,
         13349,
@@ -5984,18 +6194,20 @@
           "actual_rank": 8
         }
       ],
-      "distance_gap": 484732567552.0,
+      "distance_gap": 23087609282560.0,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_42",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         13392,
         13387,
@@ -6049,18 +6261,20 @@
           "actual_rank": 3
         }
       ],
-      "distance_gap": 880715759616.0,
+      "distance_gap": 12108192808960.0,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_43",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         13494,
         13534,
@@ -6121,11 +6335,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_44",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         13632,
         13618,
@@ -6187,11 +6403,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_45",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         13782,
         13783,
@@ -6260,18 +6478,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": -2.2132012035022052e-30,
+      "distance_gap": 1.142839381067179e-29,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_46",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         13849,
         13806,
@@ -6326,18 +6546,20 @@
           "actual_rank": 5
         }
       ],
-      "distance_gap": 1.7977982926138672e-14,
+      "distance_gap": 5.3929239275229274e-14,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_47",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         13881,
         13953,
@@ -6394,11 +6616,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_48",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         14109,
         14113,
@@ -6463,18 +6687,20 @@
           "actual_rank": 8
         }
       ],
-      "distance_gap": 2.4814124957280373e-14,
+      "distance_gap": 3.832625880616051e-14,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_49",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         14187,
         14147,
@@ -6531,11 +6757,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_50",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         14601,
         14585,
@@ -6601,11 +6829,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_51",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         14705,
         14713,
@@ -6664,18 +6894,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": -0.48233580589294434,
+      "distance_gap": 2.1815249919891357,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_52",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         15088,
         15081,
@@ -6750,18 +6982,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": -11226720.0,
+      "distance_gap": 55607290.0,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_53",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         15170,
         15174,
@@ -6832,11 +7066,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_54",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         15286,
         15291,
@@ -6916,11 +7152,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_55",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         15456,
         15461,
@@ -6981,11 +7219,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_56",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         15537,
         15527,
@@ -7041,18 +7281,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": -4.176249353762667e-25,
+      "distance_gap": 1.1468213321070188e-24,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_57",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         15589,
         15591,
@@ -7120,18 +7362,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": -702.060546875,
+      "distance_gap": 875.7899780273438,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_58",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         16116,
         16131,
@@ -7191,18 +7435,20 @@
           "actual_rank": 9
         }
       ],
-      "distance_gap": 2.5388138856843878e-14,
+      "distance_gap": 1.1569456330462469e-13,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_59",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         16548,
         16527,
@@ -7252,18 +7498,20 @@
         16377
       ],
       "rank_swaps": [],
-      "distance_gap": 2.2285913559016993e-8,
+      "distance_gap": 2.6570718958396355e-8,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_60",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         16627,
         16638,
@@ -7333,11 +7581,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_61",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         16699,
         16727,
@@ -7399,11 +7649,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_62",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         16933,
         16988,
@@ -7455,18 +7707,20 @@
           "actual_rank": 3
         }
       ],
-      "distance_gap": 2.0728768584000264e-27,
+      "distance_gap": 4.808104521020145e-27,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_63",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         17070,
         17062,
@@ -7527,18 +7781,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": -0.00010509975254535676,
+      "distance_gap": 0.004321470041759312,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_64",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         17201,
         17204,
@@ -7599,11 +7855,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_65",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         17315,
         17306,
@@ -7653,18 +7911,20 @@
         17296
       ],
       "rank_swaps": [],
-      "distance_gap": 97.3731689453125,
+      "distance_gap": 177.4520263671875,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_66",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         18149,
         18092,
@@ -7714,18 +7974,20 @@
         18005
       ],
       "rank_swaps": [],
-      "distance_gap": 13310837760.0,
+      "distance_gap": 14700459008.0,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_67",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         18273,
         18269,
@@ -7779,18 +8041,20 @@
           "actual_rank": 8
         }
       ],
-      "distance_gap": 4.0912843011049335e-24,
+      "distance_gap": 1.2086561547197227e-23,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_68",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         18569,
         18619,
@@ -7844,18 +8108,20 @@
           "actual_rank": 3
         }
       ],
-      "distance_gap": 0.10259251296520232,
+      "distance_gap": 0.11882220208644868,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_69",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         18914,
         18900,
@@ -7922,11 +8188,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_70",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         19019,
         19010,
@@ -7989,18 +8257,20 @@
           "actual_rank": 9
         }
       ],
-      "distance_gap": 1.0062925184705766e-32,
+      "distance_gap": 3.3099271354888863e-31,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_71",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         19048,
         19035,
@@ -8070,11 +8340,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_72",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         19200,
         19162,
@@ -8134,18 +8406,20 @@
           "actual_rank": 7
         }
       ],
-      "distance_gap": 1495249408.0,
+      "distance_gap": 2779767808.0,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_73",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         19900,
         19879,
@@ -8206,11 +8480,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_74",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         20104,
         20085,
@@ -8267,11 +8543,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_75",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         20256,
         20293,
@@ -8325,18 +8603,20 @@
           "actual_rank": 7
         }
       ],
-      "distance_gap": 7.9314725490524e-26,
+      "distance_gap": 1.8241873486934545e-25,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_76",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         20513,
         20524,
@@ -8403,11 +8683,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_77",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         20584,
         20578,
@@ -8477,11 +8759,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_78",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         20826,
         20739,
@@ -8538,11 +8822,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_79",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         20926,
         20946,
@@ -8618,11 +8904,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_80",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         21238,
         21182,
@@ -8672,18 +8960,20 @@
         21099
       ],
       "rank_swaps": [],
-      "distance_gap": 0.0003538346791174263,
+      "distance_gap": 0.0004562728281598538,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_81",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         21382,
         21349,
@@ -8740,11 +9030,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_82",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         21737,
         21742,
@@ -8809,11 +9101,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "collision_ladder_83",
       "category": "collision_ladder",
+      "severity": "mismatch",
       "expected_ids": [
         21831,
         21866,
@@ -8874,11 +9168,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "diff_overflow_01",
       "category": "diff_overflow",
+      "severity": "mismatch",
       "expected_ids": [
         21965,
         21964,
@@ -8928,18 +9224,20 @@
         9
       ],
       "rank_swaps": [],
-      "distance_gap": 1.7605380349532321e+78,
+      "distance_gap": 1.769536252521749e+78,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "diff_overflow_02",
       "category": "diff_overflow",
+      "severity": "mismatch",
       "expected_ids": [
         22059,
         22062,
@@ -8989,18 +9287,20 @@
         9
       ],
       "rank_swaps": [],
-      "distance_gap": 1.7549241079235871e+78,
+      "distance_gap": 1.7699142141945872e+78,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "diff_overflow_03",
       "category": "diff_overflow",
+      "severity": "mismatch",
       "expected_ids": [
         22123,
         22132,
@@ -9050,18 +9350,20 @@
         9
       ],
       "rank_swaps": [],
-      "distance_gap": 1.7585635256878471e+78,
+      "distance_gap": 1.770528305245876e+78,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "diff_overflow_04",
       "category": "diff_overflow",
+      "severity": "mismatch",
       "expected_ids": [
         22193,
         22198,
@@ -9111,18 +9413,20 @@
         9
       ],
       "rank_swaps": [],
-      "distance_gap": 1.7668990455498048e+78,
+      "distance_gap": 1.7711263600201717e+78,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "diff_overflow_05",
       "category": "diff_overflow",
+      "severity": "mismatch",
       "expected_ids": [
         22296,
         22304,
@@ -9172,18 +9476,20 @@
         9
       ],
       "rank_swaps": [],
-      "distance_gap": 1.7572088725017237e+78,
+      "distance_gap": 1.7702921141722217e+78,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "diff_overflow_06",
       "category": "diff_overflow",
+      "severity": "mismatch",
       "expected_ids": [
         22455,
         22447,
@@ -9233,18 +9539,20 @@
         9
       ],
       "rank_swaps": [],
-      "distance_gap": 1.7621102397071233e+78,
+      "distance_gap": 1.7687801662027641e+78,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "max_sentinel_03",
       "category": "max_sentinel",
+      "severity": "mismatch",
       "expected_ids": [
         22114,
         22115,
@@ -9283,11 +9591,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "max_sentinel_06",
       "category": "max_sentinel",
+      "severity": "mismatch",
       "expected_ids": [
         22220,
         22221,
@@ -9326,11 +9636,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_001",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         127,
         129,
@@ -9369,11 +9681,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_003",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         172,
         168,
@@ -9412,11 +9726,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_004",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         178,
         181,
@@ -9455,11 +9771,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_009",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         333,
         335,
@@ -9498,11 +9816,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_011",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         406,
         402,
@@ -9541,11 +9861,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_012",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         445,
         446,
@@ -9584,11 +9906,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_014",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         576,
         574,
@@ -9627,11 +9951,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_015",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         585,
         580,
@@ -9670,11 +9996,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_021",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         782,
         784,
@@ -9713,11 +10041,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_023",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         838,
         837,
@@ -9756,11 +10086,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_025",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         872,
         878,
@@ -9799,11 +10131,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_029",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         960,
         961,
@@ -9842,11 +10176,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_030",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         1040,
         1043,
@@ -9885,11 +10221,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_032",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         1074,
         1072,
@@ -9928,11 +10266,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_036",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         1177,
         1179,
@@ -9971,11 +10311,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_037",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         1189,
         1192,
@@ -10014,11 +10356,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_039",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         1248,
         1245,
@@ -10057,11 +10401,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_041",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         1293,
         1290,
@@ -10100,11 +10446,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_048",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         1418,
         1421,
@@ -10143,11 +10491,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_050",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         1466,
         1469,
@@ -10186,11 +10536,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_053",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         1549,
         1545,
@@ -10229,11 +10581,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_054",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         1565,
         1568,
@@ -10272,11 +10626,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_055",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         1579,
         1575,
@@ -10315,11 +10671,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_056",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         1608,
         1614,
@@ -10358,11 +10716,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_058",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         1709,
         1717,
@@ -10401,11 +10761,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_069",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         2079,
         2077,
@@ -10444,11 +10806,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_070",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         2110,
         2105,
@@ -10487,11 +10851,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_072",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         2177,
         2171,
@@ -10530,11 +10896,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_074",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         2255,
         2256,
@@ -10573,11 +10941,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_075",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         2382,
         2380,
@@ -10616,11 +10986,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_083",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         2523,
         2527,
@@ -10659,11 +11031,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_085",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         2555,
         2550,
@@ -10702,11 +11076,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_090",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         2696,
         2688,
@@ -10745,11 +11121,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_091",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         2723,
         2726,
@@ -10788,11 +11166,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_094",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         2850,
         2848,
@@ -10831,11 +11211,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_096",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         2920,
         2921,
@@ -10874,11 +11256,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_100",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         3157,
         3158,
@@ -10917,11 +11301,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_102",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         3188,
         3191,
@@ -10960,11 +11346,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_106",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         3273,
         3279,
@@ -11003,11 +11391,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_109",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         3470,
         3469,
@@ -11046,11 +11436,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_114",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         3725,
         3719,
@@ -11089,11 +11481,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_116",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         3849,
         3847,
@@ -11132,11 +11526,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_123",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         4047,
         4043,
@@ -11175,11 +11571,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_124",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         4109,
         4108,
@@ -11218,11 +11616,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_129",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         4385,
         4388,
@@ -11261,11 +11661,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_131",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         4403,
         4405,
@@ -11304,11 +11706,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_136",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         4517,
         4513,
@@ -11347,11 +11751,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_140",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         4693,
         4691,
@@ -11390,11 +11796,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_148",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         4914,
         4919,
@@ -11433,11 +11841,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_152",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         5200,
         5193,
@@ -11476,11 +11886,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_158",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         5446,
         5442,
@@ -11519,11 +11931,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_160",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         5488,
         5492,
@@ -11562,11 +11976,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_161",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         5501,
         5503,
@@ -11605,11 +12021,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_162",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         5524,
         5517,
@@ -11648,11 +12066,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_163",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         5532,
         5533,
@@ -11691,11 +12111,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_167",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         5829,
         5833,
@@ -11734,11 +12156,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_177",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         6106,
         6110,
@@ -11777,11 +12201,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_178",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         6160,
         6155,
@@ -11820,11 +12246,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_182",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         6380,
         6375,
@@ -11863,11 +12291,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_183",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         6481,
         6478,
@@ -11906,11 +12336,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_184",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         6522,
         6520,
@@ -11949,11 +12381,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_185",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         6541,
         6543,
@@ -11992,11 +12426,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_186",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         6610,
         6608,
@@ -12035,11 +12471,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_188",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         6672,
         6679,
@@ -12078,11 +12516,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_190",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         6806,
         6803,
@@ -12121,11 +12561,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_191",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         6822,
         6815,
@@ -12164,11 +12606,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_192",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         6835,
         6839,
@@ -12207,11 +12651,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_198",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         7369,
         7376,
@@ -12250,11 +12696,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_200",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         7441,
         7435,
@@ -12293,11 +12741,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_201",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         7681,
         7687,
@@ -12336,11 +12786,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_204",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         7743,
         7747,
@@ -12379,11 +12831,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_205",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         7758,
         7760,
@@ -12422,11 +12876,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_208",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         7857,
         7854,
@@ -12465,11 +12921,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_213",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         8043,
         8044,
@@ -12508,11 +12966,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_214",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         8049,
         8056,
@@ -12551,11 +13011,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_215",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         8092,
         8096,
@@ -12594,11 +13056,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_218",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         8196,
         8198,
@@ -12637,11 +13101,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_219",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         8249,
         8247,
@@ -12680,11 +13146,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_220",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         8268,
         8273,
@@ -12723,11 +13191,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_225",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         8414,
         8411,
@@ -12766,11 +13236,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_226",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         8515,
         8517,
@@ -12809,11 +13281,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_228",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         8577,
         8581,
@@ -12852,11 +13326,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_231",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         8772,
         8770,
@@ -12895,11 +13371,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_234",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         9083,
         9082,
@@ -12938,11 +13416,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_236",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         9182,
         9180,
@@ -12981,11 +13461,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_237",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         9313,
         9320,
@@ -13024,11 +13506,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_239",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         9402,
         9399,
@@ -13067,11 +13551,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_240",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         9420,
         9417,
@@ -13110,11 +13596,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_243",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         9485,
         9479,
@@ -13153,11 +13641,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_244",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         9505,
         9499,
@@ -13196,11 +13686,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_246",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         9557,
         9559,
@@ -13239,11 +13731,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_254",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         10163,
         10158,
@@ -13282,11 +13776,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_260",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         10511,
         10515,
@@ -13325,11 +13821,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_264",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         10877,
         10883,
@@ -13368,11 +13866,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_265",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         10890,
         10884,
@@ -13411,11 +13911,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_266",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         10913,
         10910,
@@ -13454,11 +13956,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_267",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         10948,
         10943,
@@ -13497,11 +14001,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_270",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         11097,
         11102,
@@ -13540,11 +14046,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_273",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         11154,
         11156,
@@ -13583,11 +14091,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_274",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         11169,
         11162,
@@ -13626,11 +14136,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_276",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         11244,
         11246,
@@ -13669,11 +14181,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_288",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         11979,
         11976,
@@ -13712,11 +14226,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_289",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         12007,
         12008,
@@ -13755,11 +14271,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_291",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         12213,
         12212,
@@ -13798,11 +14316,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_293",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         12335,
         12341,
@@ -13841,11 +14361,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_296",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         12635,
         12636,
@@ -13884,11 +14406,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_320",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         14062,
         14055,
@@ -13927,11 +14451,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_323",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         14296,
         14297,
@@ -13970,11 +14496,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_324",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         14321,
         14316,
@@ -14013,11 +14541,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_326",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         14421,
         14426,
@@ -14056,11 +14586,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_330",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         14564,
         14567,
@@ -14099,11 +14631,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_343",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         15367,
         15366,
@@ -14142,11 +14676,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_344",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         15498,
         15497,
@@ -14185,11 +14721,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_345",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         15708,
         15715,
@@ -14228,11 +14766,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_348",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         15976,
         15980,
@@ -14271,11 +14811,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_349",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         15992,
         15986,
@@ -14314,11 +14856,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_357",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         16262,
         16268,
@@ -14357,11 +14901,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_363",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         16689,
         16690,
@@ -14400,11 +14946,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_364",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         16850,
         16855,
@@ -14443,11 +14991,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_370",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         17101,
         17099,
@@ -14486,11 +15036,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_375",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         17460,
         17465,
@@ -14529,11 +15081,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_379",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         17561,
         17560,
@@ -14572,11 +15126,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_380",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         17631,
         17628,
@@ -14615,11 +15171,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_392",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         19233,
         19235,
@@ -14658,11 +15216,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_393",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         19415,
         19419,
@@ -14701,11 +15261,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_394",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         19430,
         19435,
@@ -14744,11 +15306,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_397",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         20350,
         20354,
@@ -14787,11 +15351,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_400",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         20540,
         20536,
@@ -14830,11 +15396,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_403",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         21542,
         21541,
@@ -14873,11 +15441,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_404",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         21671,
         21669,
@@ -14916,11 +15486,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "neartie_405",
       "category": "neartie",
+      "severity": "mismatch",
       "expected_ids": [
         21918,
         21912,
@@ -14959,11 +15531,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "normdot_cancel_06",
       "category": "normdot_cancel",
+      "severity": "mismatch",
       "expected_ids": [
         5914,
         5915,
@@ -15041,18 +15615,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": 0.0,
+      "distance_gap": 9.621952956331904e-50,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_008",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         112,
         113,
@@ -15091,11 +15667,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_012",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         233,
         234,
@@ -15134,11 +15712,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_019",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         387,
         388,
@@ -15177,11 +15757,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_031",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         848,
         849,
@@ -15220,11 +15802,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_036",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         969,
         970,
@@ -15263,11 +15847,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_043",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         1090,
         1091,
@@ -15306,11 +15892,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_049",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         1255,
         1256,
@@ -15349,11 +15937,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_050",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         1310,
         1311,
@@ -15392,11 +15982,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_052",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         1398,
         1399,
@@ -15435,11 +16027,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_055",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         1453,
         1454,
@@ -15478,11 +16072,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_058",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         1552,
         1553,
@@ -15521,11 +16117,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_059",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         1585,
         1586,
@@ -15564,11 +16162,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_065",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         1764,
         1765,
@@ -15607,11 +16207,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_071",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         1918,
         1919,
@@ -15650,11 +16252,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_076",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         1995,
         1996,
@@ -15693,11 +16297,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_078",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         2061,
         2062,
@@ -15736,11 +16342,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_079",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         2083,
         2084,
@@ -15779,11 +16387,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_084",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         2182,
         2183,
@@ -15822,11 +16432,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_089",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         2321,
         2322,
@@ -15865,11 +16477,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_090",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         2343,
         2344,
@@ -15908,11 +16522,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_100",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         2732,
         2733,
@@ -15951,11 +16567,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_104",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         2888,
         2889,
@@ -15994,11 +16612,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_108",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         3020,
         3021,
@@ -16037,11 +16657,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_110",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         3053,
         3054,
@@ -16080,11 +16702,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_114",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         3130,
         3131,
@@ -16123,11 +16747,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_120",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         3284,
         3285,
@@ -16166,11 +16792,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_122",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         3390,
         3391,
@@ -16209,11 +16837,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_127",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         3533,
         3534,
@@ -16252,11 +16882,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_129",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         3555,
         3556,
@@ -16295,11 +16927,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_131",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         3599,
         3600,
@@ -16338,11 +16972,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_133",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         3654,
         3655,
@@ -16381,11 +17017,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_136",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         3709,
         3710,
@@ -16424,11 +17062,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_142",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         3907,
         3908,
@@ -16467,11 +17107,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_147",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         4061,
         4062,
@@ -16510,11 +17152,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_152",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         4260,
         4261,
@@ -16553,11 +17197,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_154",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         4326,
         4327,
@@ -16596,11 +17242,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_170",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         5093,
         5094,
@@ -16639,11 +17287,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_175",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         5215,
         5216,
@@ -16682,11 +17332,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_183",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         5451,
         5452,
@@ -16725,11 +17377,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_186",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         5594,
         5595,
@@ -16768,11 +17422,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_187",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         5816,
         5817,
@@ -16811,11 +17467,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_189",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         5970,
         5971,
@@ -16854,11 +17512,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_192",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         6036,
         6037,
@@ -16897,11 +17557,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_193",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         6047,
         6048,
@@ -16940,11 +17602,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_194",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         6058,
         6059,
@@ -16983,11 +17647,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_204",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         6396,
         6397,
@@ -17026,11 +17692,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_205",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         6407,
         6408,
@@ -17069,11 +17737,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_206",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         6418,
         6419,
@@ -17112,11 +17782,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_210",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         6495,
         6496,
@@ -17155,11 +17827,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_215",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         6627,
         6628,
@@ -17198,11 +17872,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_216",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         6693,
         6694,
@@ -17241,11 +17917,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_231",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         7424,
         7425,
@@ -17284,11 +17962,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_239",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         7942,
         7943,
@@ -17327,11 +18007,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_243",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         8114,
         8115,
@@ -17370,11 +18052,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_244",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         8125,
         8126,
@@ -17413,11 +18097,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_255",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         8477,
         8478,
@@ -17456,11 +18142,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_259",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         8565,
         8566,
@@ -17499,11 +18187,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_261",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         8670,
         8671,
@@ -17542,11 +18232,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_262",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         8681,
         8682,
@@ -17585,11 +18277,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_263",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         8692,
         8693,
@@ -17628,11 +18322,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_266",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         8736,
         8737,
@@ -17671,11 +18367,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_271",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         9164,
         9165,
@@ -17714,11 +18412,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_275",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         9230,
         9231,
@@ -17757,11 +18457,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_279",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         9379,
         9380,
@@ -17800,11 +18502,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_280",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         9434,
         9435,
@@ -17843,11 +18547,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_288",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         10059,
         10060,
@@ -17886,11 +18592,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_289",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         10103,
         10104,
@@ -17929,11 +18637,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_292",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         10456,
         10457,
@@ -17972,11 +18682,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_298",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         10716,
         10717,
@@ -18015,11 +18727,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_302",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         10842,
         10843,
@@ -18058,11 +18772,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_307",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         11018,
         11019,
@@ -18101,11 +18817,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_319",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         11304,
         11305,
@@ -18144,11 +18862,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_328",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         11590,
         11591,
@@ -18187,11 +18907,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_330",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         11634,
         11635,
@@ -18230,11 +18952,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_333",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         11678,
         11679,
@@ -18273,11 +18997,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_334",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         11746,
         11747,
@@ -18316,11 +19042,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_342",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         11983,
         11984,
@@ -18359,11 +19087,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_343",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         11994,
         11995,
@@ -18402,11 +19132,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_344",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         12171,
         12172,
@@ -18445,11 +19177,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_349",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         12599,
         12600,
@@ -18488,11 +19222,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_351",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         12621,
         12622,
@@ -18531,11 +19267,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_352",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         12643,
         12644,
@@ -18574,11 +19312,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_359",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         12851,
         12852,
@@ -18617,11 +19357,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_372",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         13460,
         13461,
@@ -18660,11 +19402,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_374",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         13608,
         13609,
@@ -18703,11 +19447,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_376",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         13739,
         13740,
@@ -18746,11 +19492,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_378",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         13979,
         13980,
@@ -18789,11 +19537,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_387",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         14498,
         14499,
@@ -18832,11 +19582,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_388",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         14509,
         14510,
@@ -18875,11 +19627,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_393",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         14760,
         14761,
@@ -18918,11 +19672,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_394",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         14782,
         14783,
@@ -18961,11 +19717,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_395",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         14870,
         14871,
@@ -19004,11 +19762,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_396",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         14903,
         14904,
@@ -19047,11 +19807,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_398",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         15003,
         15004,
@@ -19090,11 +19852,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_400",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         15036,
         15037,
@@ -19133,11 +19897,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_403",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         15206,
         15207,
@@ -19176,11 +19942,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_413",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         15963,
         15964,
@@ -19219,11 +19987,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_415",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         16172,
         16173,
@@ -19262,11 +20032,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_424",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         16781,
         16782,
@@ -19305,11 +20077,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_433",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         17382,
         17383,
@@ -19348,11 +20122,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_443",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         18441,
         18442,
@@ -19391,11 +20167,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_445",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         18686,
         18687,
@@ -19434,11 +20212,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_456",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         19285,
         19286,
@@ -19477,11 +20257,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_460",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         19538,
         19539,
@@ -19520,11 +20302,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_461",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         19560,
         19561,
@@ -19563,11 +20347,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_463",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         19615,
         19616,
@@ -19606,11 +20392,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_466",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         19824,
         19825,
@@ -19649,11 +20437,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_468",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         20338,
         20339,
@@ -19692,11 +20482,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_474",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         21547,
         21548,
@@ -19735,11 +20527,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_479",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         21809,
         21810,
@@ -19778,11 +20572,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "order_disc_480",
       "category": "order_disc",
+      "severity": "mismatch",
       "expected_ids": [
         21892,
         21893,
@@ -19821,11 +20617,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "overflow_inf_01",
       "category": "overflow_inf",
+      "severity": "mismatch",
       "expected_ids": [
         21923,
         21924,
@@ -19864,11 +20662,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "overflow_inf_02",
       "category": "overflow_inf",
+      "severity": "mismatch",
       "expected_ids": [
         21947,
         21948,
@@ -19907,11 +20707,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "overflow_inf_03",
       "category": "overflow_inf",
+      "severity": "mismatch",
       "expected_ids": [
         21969,
         21970,
@@ -19950,11 +20752,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "overflow_inf_04",
       "category": "overflow_inf",
+      "severity": "mismatch",
       "expected_ids": [
         21980,
         21981,
@@ -19993,11 +20797,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "overflow_inf_05",
       "category": "overflow_inf",
+      "severity": "mismatch",
       "expected_ids": [
         22004,
         22005,
@@ -20036,11 +20842,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "overflow_inf_06",
       "category": "overflow_inf",
+      "severity": "mismatch",
       "expected_ids": [
         22026,
         22027,
@@ -20079,11 +20887,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "overflow_inf_07",
       "category": "overflow_inf",
+      "severity": "mismatch",
       "expected_ids": [
         22046,
         22047,
@@ -20122,11 +20932,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "overflow_inf_08",
       "category": "overflow_inf",
+      "severity": "mismatch",
       "expected_ids": [
         22090,
         22091,
@@ -20165,11 +20977,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "overflow_inf_09",
       "category": "overflow_inf",
+      "severity": "mismatch",
       "expected_ids": [
         22147,
         22148,
@@ -20208,11 +21022,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "overflow_inf_10",
       "category": "overflow_inf",
+      "severity": "mismatch",
       "expected_ids": [
         22242,
         22243,
@@ -20251,11 +21067,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "overflow_inf_11",
       "category": "overflow_inf",
+      "severity": "mismatch",
       "expected_ids": [
         22262,
         22263,
@@ -20294,11 +21112,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "overflow_inf_12",
       "category": "overflow_inf",
+      "severity": "mismatch",
       "expected_ids": [
         22306,
         22307,
@@ -20337,11 +21157,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "overflow_inf_13",
       "category": "overflow_inf",
+      "severity": "mismatch",
       "expected_ids": [
         22350,
         22351,
@@ -20380,11 +21202,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "overflow_inf_14",
       "category": "overflow_inf",
+      "severity": "mismatch",
       "expected_ids": [
         22372,
         22373,
@@ -20423,11 +21247,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "overflow_inf_15",
       "category": "overflow_inf",
+      "severity": "mismatch",
       "expected_ids": [
         22396,
         22397,
@@ -20466,11 +21292,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "overflow_inf_16",
       "category": "overflow_inf",
+      "severity": "mismatch",
       "expected_ids": [
         22418,
         22419,
@@ -20509,11 +21337,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "overflow_inf_17",
       "category": "overflow_inf",
+      "severity": "mismatch",
       "expected_ids": [
         22429,
         22430,
@@ -20552,11 +21382,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "overflow_inf_18",
       "category": "overflow_inf",
+      "severity": "mismatch",
       "expected_ids": [
         22459,
         22460,
@@ -20595,11 +21427,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "overflow_inf_19",
       "category": "overflow_inf",
+      "severity": "mismatch",
       "expected_ids": [
         22479,
         22480,
@@ -20638,11 +21472,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_01",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         588,
         589,
@@ -20681,11 +21517,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_05",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         3412,
         3413,
@@ -20724,11 +21562,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_06",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         3522,
         3523,
@@ -20767,11 +21607,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_10",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         4469,
         4470,
@@ -20810,11 +21652,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_11",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         5268,
         5269,
@@ -20853,11 +21697,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_14",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         6506,
         6507,
@@ -20896,11 +21742,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_15",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         6594,
         6595,
@@ -20939,11 +21787,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_17",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         6704,
         6705,
@@ -20982,11 +21832,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_18",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         6737,
         6738,
@@ -21025,11 +21877,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_19",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         6847,
         6848,
@@ -21068,11 +21922,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_20",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         6957,
         6958,
@@ -21111,11 +21967,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_22",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         7975,
         7976,
@@ -21154,11 +22012,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_23",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         8367,
         8368,
@@ -21197,11 +22057,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_24",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         9140,
         9141,
@@ -21240,11 +22102,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_29",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         11315,
         11316,
@@ -21283,11 +22147,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_30",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         11348,
         11349,
@@ -21326,11 +22192,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_31",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         13033,
         13034,
@@ -21369,11 +22237,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_32",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         13706,
         13707,
@@ -21412,11 +22282,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_33",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         14366,
         14367,
@@ -21455,11 +22327,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_35",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         14892,
         14893,
@@ -21498,11 +22372,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_39",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         15721,
         15722,
@@ -21541,11 +22417,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_40",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         15785,
         15786,
@@ -21584,11 +22462,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_42",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         16040,
         16041,
@@ -21627,11 +22507,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_43",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         16803,
         16804,
@@ -21670,11 +22552,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_44",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         16814,
         16815,
@@ -21713,11 +22597,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_45",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         17369,
         17370,
@@ -21756,11 +22642,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_46",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         17446,
         17447,
@@ -21799,11 +22687,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_47",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         17580,
         17581,
@@ -21842,11 +22732,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_49",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         17602,
         17603,
@@ -21885,11 +22777,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_50",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         17668,
         17669,
@@ -21928,11 +22822,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_54",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         19252,
         19253,
@@ -21971,11 +22867,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_57",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         19514,
         19515,
@@ -22014,11 +22912,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_round_58",
       "category": "sq_round",
+      "severity": "mismatch",
       "expected_ids": [
         19756,
         19757,
@@ -22057,11 +22957,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_subnormal_01",
       "category": "sq_subnormal",
+      "severity": "mismatch",
       "expected_ids": [
         1101,
         1102,
@@ -22100,11 +23002,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_subnormal_02",
       "category": "sq_subnormal",
+      "severity": "mismatch",
       "expected_ids": [
         3262,
         3263,
@@ -22143,11 +23047,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_subnormal_03",
       "category": "sq_subnormal",
+      "severity": "mismatch",
       "expected_ids": [
         4081,
         4082,
@@ -22186,11 +23092,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_subnormal_04",
       "category": "sq_subnormal",
+      "severity": "mismatch",
       "expected_ids": [
         4967,
         4968,
@@ -22229,11 +23137,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_subnormal_06",
       "category": "sq_subnormal",
+      "severity": "mismatch",
       "expected_ids": [
         6682,
         6683,
@@ -22272,11 +23182,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_subnormal_09",
       "category": "sq_subnormal",
+      "severity": "mismatch",
       "expected_ids": [
         8431,
         8432,
@@ -22315,11 +23227,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_subnormal_11",
       "category": "sq_subnormal",
+      "severity": "mismatch",
       "expected_ids": [
         9533,
         9534,
@@ -22358,11 +23272,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_subnormal_12",
       "category": "sq_subnormal",
+      "severity": "mismatch",
       "expected_ids": [
         10092,
         10093,
@@ -22401,11 +23317,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_subnormal_13",
       "category": "sq_subnormal",
+      "severity": "mismatch",
       "expected_ids": [
         11478,
         11479,
@@ -22444,11 +23362,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_subnormal_16",
       "category": "sq_subnormal",
+      "severity": "mismatch",
       "expected_ids": [
         17437,
         17438,
@@ -22487,11 +23407,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_subnormal_18",
       "category": "sq_subnormal",
+      "severity": "mismatch",
       "expected_ids": [
         18496,
         18497,
@@ -22530,11 +23452,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_subnormal_19",
       "category": "sq_subnormal",
+      "severity": "mismatch",
       "expected_ids": [
         19626,
         19627,
@@ -22573,11 +23497,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_subnormal_21",
       "category": "sq_subnormal",
+      "severity": "mismatch",
       "expected_ids": [
         20382,
         20383,
@@ -22616,11 +23542,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_subnormal_22",
       "category": "sq_subnormal",
+      "severity": "mismatch",
       "expected_ids": [
         20415,
         20416,
@@ -22659,11 +23587,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_subnormal_24",
       "category": "sq_subnormal",
+      "severity": "mismatch",
       "expected_ids": [
         21624,
         21625,
@@ -22702,11 +23632,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_subnormal_25",
       "category": "sq_subnormal",
+      "severity": "mismatch",
       "expected_ids": [
         21657,
         21658,
@@ -22745,11 +23677,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_subnormal_28",
       "category": "sq_subnormal",
+      "severity": "mismatch",
       "expected_ids": [
         21903,
         21904,
@@ -22788,11 +23722,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_underflow_03",
       "category": "sq_underflow",
+      "severity": "mismatch",
       "expected_ids": [
         3294,
         3295,
@@ -22870,18 +23806,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": 0.0,
+      "distance_gap": 2.8053338397127686e-47,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_underflow_04",
       "category": "sq_underflow",
+      "severity": "mismatch",
       "expected_ids": [
         3327,
         3328,
@@ -22959,18 +23897,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": 0.0,
+      "distance_gap": 4.698219216958939e-53,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_underflow_06",
       "category": "sq_underflow",
+      "severity": "mismatch",
       "expected_ids": [
         6134,
         6135,
@@ -23048,18 +23988,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": 0.0,
+      "distance_gap": 4.3790577010150533e-47,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_underflow_12",
       "category": "sq_underflow",
+      "severity": "mismatch",
       "expected_ids": [
         10306,
         10307,
@@ -23137,18 +24079,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": 0.0,
+      "distance_gap": 1.3684555315672042e-47,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_underflow_13",
       "category": "sq_underflow",
+      "severity": "mismatch",
       "expected_ids": [
         10649,
         10650,
@@ -23205,11 +24149,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_underflow_16",
       "category": "sq_underflow",
+      "severity": "mismatch",
       "expected_ids": [
         11412,
         11413,
@@ -23266,11 +24212,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_underflow_17",
       "category": "sq_underflow",
+      "severity": "mismatch",
       "expected_ids": [
         11655,
         11656,
@@ -23348,18 +24296,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": 0.0,
+      "distance_gap": 8.284077937888753e-57,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_underflow_20",
       "category": "sq_underflow",
+      "severity": "mismatch",
       "expected_ids": [
         12916,
         12917,
@@ -23437,18 +24387,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": 0.0,
+      "distance_gap": 7.663350976776342e-47,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_underflow_23",
       "category": "sq_underflow",
+      "severity": "mismatch",
       "expected_ids": [
         13856,
         13857,
@@ -23526,18 +24478,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": 0.0,
+      "distance_gap": 1.6749895706382582e-45,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_underflow_24",
       "category": "sq_underflow",
+      "severity": "mismatch",
       "expected_ids": [
         14000,
         14001,
@@ -23615,18 +24569,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": 0.0,
+      "distance_gap": 6.525304467998525e-54,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_underflow_25",
       "category": "sq_underflow",
+      "severity": "mismatch",
       "expected_ids": [
         14814,
         14815,
@@ -23683,11 +24639,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_underflow_27",
       "category": "sq_underflow",
+      "severity": "mismatch",
       "expected_ids": [
         14847,
         14848,
@@ -23765,18 +24723,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": 0.0,
+      "distance_gap": 1.5874084166179568e-45,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_underflow_28",
       "category": "sq_underflow",
+      "severity": "mismatch",
       "expected_ids": [
         15146,
         15147,
@@ -23854,18 +24814,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": 0.0,
+      "distance_gap": 4.078315292499078e-56,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_underflow_32",
       "category": "sq_underflow",
+      "severity": "mismatch",
       "expected_ids": [
         15863,
         15864,
@@ -23943,18 +24905,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": 0.0,
+      "distance_gap": 1.7105694144590052e-49,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_underflow_33",
       "category": "sq_underflow",
+      "severity": "mismatch",
       "expected_ids": [
         15918,
         15919,
@@ -24011,11 +24975,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_underflow_35",
       "category": "sq_underflow",
+      "severity": "mismatch",
       "expected_ids": [
         16160,
         16161,
@@ -24093,18 +25059,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": 0.0,
+      "distance_gap": 2.45894353328482e-49,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_underflow_38",
       "category": "sq_underflow",
+      "severity": "mismatch",
       "expected_ids": [
         17403,
         17404,
@@ -24161,11 +25129,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_underflow_42",
       "category": "sq_underflow",
+      "severity": "mismatch",
       "expected_ids": [
         17974,
         17975,
@@ -24222,11 +25192,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_underflow_46",
       "category": "sq_underflow",
+      "severity": "mismatch",
       "expected_ids": [
         18740,
         18741,
@@ -24304,18 +25276,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": 0.0,
+      "distance_gap": 7.137051761873385e-56,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_underflow_47",
       "category": "sq_underflow",
+      "severity": "mismatch",
       "expected_ids": [
         19382,
         19383,
@@ -24372,11 +25346,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sq_underflow_49",
       "category": "sq_underflow",
+      "severity": "mismatch",
       "expected_ids": [
         19580,
         19581,
@@ -24433,11 +25409,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sqrt_01",
       "category": "sqrt",
+      "severity": "mismatch",
       "expected_ids": [
         376,
         377,
@@ -24476,11 +25454,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sqrt_02",
       "category": "sqrt",
+      "severity": "mismatch",
       "expected_ids": [
         601,
         602,
@@ -24519,11 +25499,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sqrt_04",
       "category": "sqrt",
+      "severity": "mismatch",
       "expected_ids": [
         3489,
         3490,
@@ -24562,11 +25544,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sqrt_06",
       "category": "sqrt",
+      "severity": "mismatch",
       "expected_ids": [
         4568,
         4569,
@@ -24605,11 +25589,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sqrt_07",
       "category": "sqrt",
+      "severity": "mismatch",
       "expected_ids": [
         4868,
         4869,
@@ -24648,11 +25634,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sqrt_10",
       "category": "sqrt",
+      "severity": "mismatch",
       "expected_ids": [
         10489,
         10490,
@@ -24691,11 +25679,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sqrt_11",
       "category": "sqrt",
+      "severity": "mismatch",
       "expected_ids": [
         10617,
         10618,
@@ -24734,11 +25724,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_01",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         462,
         457,
@@ -24808,11 +25800,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_02",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         1684,
         1691,
@@ -24882,11 +25876,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_03",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         2681,
         2684,
@@ -24960,11 +25956,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_04",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         2766,
         2757,
@@ -25033,18 +26031,20 @@
           "actual_rank": 7
         }
       ],
-      "distance_gap": 1.506959080856536e-43,
+      "distance_gap": 4.0055880116503355e-43,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_06",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         4482,
         4480,
@@ -25129,11 +26129,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_07",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         4646,
         4641,
@@ -25204,11 +26206,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_08",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         5109,
         5108,
@@ -25288,11 +26292,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_09",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         5590,
         5583,
@@ -25360,18 +26366,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": -8011807040.0,
+      "distance_gap": 1914097728.0,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_10",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         6278,
         6279,
@@ -25410,11 +26418,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_12",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         7078,
         7072,
@@ -25490,11 +26500,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_13",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         7299,
         7310,
@@ -25567,11 +26579,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_14",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         7779,
         7777,
@@ -25644,11 +26658,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_16",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         8325,
         8330,
@@ -25726,18 +26742,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": -0.000011397606442642427,
+      "distance_gap": 2.9674412189706345e-6,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_17",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         8813,
         8814,
@@ -25776,11 +26794,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_18",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         9071,
         9073,
@@ -25855,18 +26875,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": -1.9023898131281748e-19,
+      "distance_gap": 5.746597778763689e-19,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_19",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         9368,
         9369,
@@ -25905,11 +26927,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_20",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         11379,
         11380,
@@ -25974,11 +26998,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_22",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         11721,
         11707,
@@ -26048,11 +27074,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_23",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         11724,
         11725,
@@ -26091,11 +27119,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_24",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         11868,
         11866,
@@ -26167,11 +27197,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_25",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         11906,
         11907,
@@ -26210,11 +27242,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_26",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         12122,
         12117,
@@ -26294,11 +27328,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_27",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         12237,
         12230,
@@ -26369,11 +27405,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_28",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         12360,
         12359,
@@ -26458,11 +27496,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_29",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         12697,
         12713,
@@ -26535,11 +27575,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_30",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         12737,
         12734,
@@ -26607,18 +27649,20 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": -0.25267690792679787,
+      "distance_gap": 0.9628767147660257,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_33",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         13327,
         13326,
@@ -26692,11 +27736,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_34",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         14325,
         14331,
@@ -26775,11 +27821,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_35",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         14454,
         14455,
@@ -26818,11 +27866,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_36",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         14663,
         14664,
@@ -26861,11 +27911,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_37",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         14978,
         14973,
@@ -26930,18 +27982,20 @@
           "actual_rank": 8
         }
       ],
-      "distance_gap": 6.2335703703766574e-30,
+      "distance_gap": 3.9454232958004875e-29,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_41",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         16655,
         16656,
@@ -26980,11 +28034,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_42",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         16792,
         16793,
@@ -27023,11 +28079,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_43",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         17611,
         17620,
@@ -27102,11 +28160,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_46",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         17877,
         17878,
@@ -27145,11 +28205,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_47",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         18663,
         18673,
@@ -27219,11 +28281,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_48",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         19245,
         19244,
@@ -27308,11 +28372,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_49",
       "category": "sub",
+      "severity": "order_only",
       "expected_ids": [
         19487,
         19483,
@@ -27391,18 +28457,16 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": -183255684.0,
+      "distance_gap": null,
       "error": null,
-      "failed_repetitions": [
-        1,
-        2,
-        3
-      ],
+      "failed_repetitions": [],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_51",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         19813,
         19814,
@@ -27441,11 +28505,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_52",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         19935,
         19932,
@@ -27508,18 +28574,20 @@
           "actual_rank": 7
         }
       ],
-      "distance_gap": 9.615576863376582e-20,
+      "distance_gap": 6.983595526153768e-19,
       "error": null,
       "failed_repetitions": [
         1,
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_53",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         19945,
         19947,
@@ -27604,11 +28672,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_55",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         21580,
         21581,
@@ -27647,11 +28717,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_56",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         21712,
         21713,
@@ -27690,11 +28762,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_57",
       "category": "sub",
+      "severity": "mismatch",
       "expected_ids": [
         21785,
         21793,
@@ -27764,11 +28838,13 @@
         2,
         3
       ],
+      "unstable": false,
       "unstable_actual_ids": []
     },
     {
       "case_id": "sub_58",
       "category": "sub",
+      "severity": "order_only",
       "expected_ids": [
         21884,
         21881,
@@ -27842,14 +28918,38 @@
           "actual_rank": 10
         }
       ],
-      "distance_gap": -1.0085727065964582e-33,
+      "distance_gap": null,
       "error": null,
-      "failed_repetitions": [
-        1,
-        2,
-        3
-      ],
+      "failed_repetitions": [],
+      "unstable": false,
       "unstable_actual_ids": []
+    }
+  ],
+  "repeat": 3,
+  "runs": [
+    {
+      "failed": 542,
+      "order_only": 4,
+      "errors": 0,
+      "missing": 1230,
+      "extra": 1230,
+      "rank_swaps": 547
+    },
+    {
+      "failed": 542,
+      "order_only": 4,
+      "errors": 0,
+      "missing": 1230,
+      "extra": 1230,
+      "rank_swaps": 547
+    },
+    {
+      "failed": 542,
+      "order_only": 4,
+      "errors": 0,
+      "missing": 1230,
+      "extra": 1230,
+      "rank_swaps": 547
     }
   ]
 }

@@ -1,51 +1,101 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+root=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+cd "$root"
+
 KNN_AUDIT=${KNN_AUDIT:-./target/release/knn-audit}
 DATASET=${DATASET:-.data/errpedia}
 QDRANT_URL=${QDRANT_URL:-http://127.0.0.1:6333}
 DATABASE_URL=${DATABASE_URL:-postgres://postgres:postgres@127.0.0.1:5432/postgres}
 FAISS_PYTHON=${FAISS_PYTHON:-.venv-faiss/bin/python}
+QDRANT_GROUP=${QDRANT_GROUP:-a}
+EXPECT_SHA256=c0158e652bf8bcd4ad8a42aa8eb642325ca76897109431241ada0ac7490d4beb
+# Dataset commit ba9bfbb7649b34d0c7619e2cf10bf6acb9fd6d06.
 
+# Dataset shape and repeats are pinned: 1,616 cases, 21 categories, top-10;
+# Qdrant --repeat 10, reference/pgvector/FAISS --repeat 3.
+tmp=$(mktemp -d "${TMPDIR:-/tmp}/knn-audit.XXXXXX")
+trap 'rm -rf "$tmp"' EXIT
+scorecards=results/scorecards
+mkdir -p "$scorecards"
+
+# The pinned Qdrant image has no health tool; poll its REST root instead.
 for _ in $(seq 1 60); do
   if curl -fsS "$QDRANT_URL/" >/dev/null; then
     break
   fi
   sleep 1
 done
-curl -fsS "$QDRANT_URL/" >/dev/null
+curl -fsS "$QDRANT_URL/"
 
-verify=$("$KNN_AUDIT" dataset verify --dataset "$DATASET" --all)
-[[ "$verify" == "dataset verify: 0/1616 cases mismatch"* ]]
+verify=$("$KNN_AUDIT" dataset verify --dataset "$DATASET" --all --k 10 \
+  --expect-sha256 "$EXPECT_SHA256" 2>&1)
 echo "$verify"
+[[ "$verify" == "dataset verify: 0/1616 cases mismatch"* ]]
 
-"$KNN_AUDIT" run --dataset "$DATASET" --engine reference --repeat 1 \
-  --out results/reference-repeat1.json >/dev/null
-jq -e '.summary.failed == 0' results/reference-repeat1.json >/dev/null
-
-mkdir -p results/scorecards
+control=$("$KNN_AUDIT" run --dataset "$DATASET" --engine reference --repeat 1 --k 10 \
+  --expect-sha256 "$EXPECT_SHA256" --out "$tmp/reference-repeat1.json" 2>&1)
+echo "$control"
+jq -e --arg sha "$EXPECT_SHA256" '
+  .schema == "knn-audit/v1" and .dataset.base_sha256 == $sha
+  and .summary.cases == 1616 and .summary.failed == 0 and .summary.order_only == 0
+  and (.runs | length) == 1 and (.failures | length) == 0
+' "$tmp/reference-repeat1.json"
 
 for engine in reference qdrant pgvector faiss; do
-  report="results/$engine.json"
-  scorecard="results/scorecards/$engine.json"
-  repeat=3
   if [[ $engine == qdrant ]]; then
     repeat=10
+  else
+    repeat=3
   fi
-  args=(run --dataset "$DATASET" --engine "$engine" --repeat "$repeat" --out "$report"
+  report="$tmp/$engine.json"
+  args=(run --dataset "$DATASET" --engine "$engine" --repeat "$repeat" --k 10
+    --expect-sha256 "$EXPECT_SHA256" --out "$report"
     --engine-url "$QDRANT_URL" --database-url "$DATABASE_URL")
   if [[ $engine == faiss ]]; then
     args+=(--faiss-python "$FAISS_PYTHON")
   fi
-  "$KNN_AUDIT" "${args[@]}" >/dev/null
-  jq -e --argjson repeat "$repeat" '.schema == "knn-audit/v1" and .summary.cases == 1616 and (.runs | length) == $repeat' "$report" >/dev/null
+  engine_out=$("$KNN_AUDIT" "${args[@]}" 2>&1)
+  echo "$engine_out"
+
+  jq -e --argjson repeat "$repeat" --arg sha "$EXPECT_SHA256" '
+    .schema == "knn-audit/v1" and .repeat == $repeat and (.runs | length) == $repeat
+    and .k == 10 and .dataset.base_sha256 == $sha
+    and .summary.cases == 1616 and (.categories | length) == 21
+    and .summary.passed + .summary.failed + .summary.order_only == .summary.cases
+    and ([.categories[].failed] | add) == .summary.failed
+    and ([.categories[].order_only] | add) == .summary.order_only
+    and .summary.failed_all <= .summary.failed and .summary.errors <= .summary.failed
+    and ([.runs[].failed] | add) >= .summary.failed
+    and ([.runs[].order_only] | add) >= .summary.order_only
+    and all(.failures[]; (.severity == "mismatch" or .severity == "error" or .severity == "order_only")
+      and ((.severity == "order_only" | not) or ((.missing_ids | length) == 0 and (.extra_ids | length) == 0)))
+  ' "$report"
   case $engine in
-    pgvector) jq -e '.summary.failed == 546 and .summary.unstable == 0' "$report" >/dev/null ;;
-    faiss) jq -e '.summary.failed == 545 and .summary.errors == 31' "$report" >/dev/null ;;
-    qdrant) jq -e '(.runs | length) == 10 and ([.runs[].failed] | all(. >= 700 and . <= 900)) and (.summary.failed >= 1100 and .summary.failed <= 1200) and (.summary.failed_all >= 400 and .summary.failed_all <= 500) and (.summary.unstable >= 800 and .summary.unstable <= 900)' "$report" >/dev/null ;;
+    reference) jq -e '.summary.failed == 0 and .summary.order_only == 0 and .summary.errors == 0' "$report" ;;
+    pgvector) jq -e '.summary.failed == 542 and .summary.order_only == 4 and .summary.errors == 0' "$report" ;;
+    faiss) jq -e '.summary.failed == 541 and .summary.order_only == 4 and .summary.errors == 31' "$report" ;;
+    qdrant) jq -e '([.runs[].failed] | min) >= 540 and ([.runs[].failed] | max) <= 613
+      and .summary.failed >= 928 and .summary.failed <= 929
+      and .summary.failed_all >= 200 and .summary.failed_all <= 207
+      and .summary.unstable >= 851 and .summary.unstable <= 852
+      and .summary.order_only == 219 and .summary.errors == 0' "$report" ;;
   esac
-  "$KNN_AUDIT" publish --input "$report" --out "$scorecard"
-  jq -e '.schema == "knn-audit-scorecard/v1"' "$scorecard" >/dev/null
-  jq -e '[paths | select(.[-1] == "query")] | length == 0' "$scorecard" >/dev/null
-  jq -e '.dataset | has("root") | not' "$scorecard" >/dev/null
+
+  version=$(jq -r '.engine.version' "$report")
+  if [[ $engine == qdrant ]]; then
+    card="$scorecards/qdrant-$version-repeat10-$QDRANT_GROUP.json"
+  else
+    card="$scorecards/$engine-$version.json"
+  fi
+  publish_out=$("$KNN_AUDIT" publish --input "$report" --out "$card" 2>&1)
+  echo "$publish_out"
+  jq -e --slurpfile report "$report" '
+    .schema == "knn-audit-scorecard/v1" and .summary == $report[0].summary
+    and .engine == $report[0].engine and .tool == $report[0].tool
+    and .tool.name == "knn-audit" and (.tool.version | type) == "string" and (.tool.version | length) > 0
+    and (has("created_at") | not) and (.dataset | has("root") | not)
+    and ([paths | select(.[-1] == "query" or .[-1] == "root" or .[-1] == "created_at")] | length) == 0
+  ' "$card"
 done
