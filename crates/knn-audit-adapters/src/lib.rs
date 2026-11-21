@@ -1,8 +1,10 @@
 pub mod exact;
+pub mod faiss;
 pub mod pgvector;
 pub mod qdrant;
 pub mod reference;
 
+pub use crate::faiss::FaissEngine;
 pub use crate::pgvector::PgVectorEngine;
 pub use crate::qdrant::QdrantEngine;
 pub use crate::reference::ReferenceEngine;

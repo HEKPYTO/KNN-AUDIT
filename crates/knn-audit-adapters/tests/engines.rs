@@ -1,6 +1,8 @@
+use knn_audit_adapters::faiss::FaissEngine;
 use knn_audit_adapters::pgvector::PgVectorEngine;
 use knn_audit_adapters::qdrant::QdrantEngine;
 use knn_audit_adapters::{CollectionView, Engine, Metric};
+use std::process::{Command, Stdio};
 use std::time::{SystemTime, UNIX_EPOCH};
 
 const QDRANT_URL: &str = "http://127.0.0.1:6333";
@@ -13,6 +15,24 @@ fn enabled() -> bool {
         println!("skipping: set KNN_AUDIT_INTEGRATION=1 to run engine integration tests");
         false
     }
+}
+
+fn faiss_python() -> Option<String> {
+    if !enabled() {
+        return None;
+    }
+    let python = std::env::var("KNN_AUDIT_FAISS_PYTHON").unwrap_or_else(|_| "python3".to_string());
+    let available = Command::new(&python)
+        .args(["-c", "import faiss"])
+        .stdout(Stdio::null())
+        .stderr(Stdio::null())
+        .status()
+        .is_ok_and(|status| status.success());
+    if !available {
+        println!("skipping: faiss is not installed in {python}");
+        return None;
+    }
+    Some(python)
 }
 
 fn unique_name(label: &str) -> String {
@@ -205,5 +225,49 @@ fn qdrant_tie_heavy_prepare_keeps_the_same_id_set() {
     second_ids.sort_unstable();
     assert_eq!(first_ids, ids);
     assert_eq!(second_ids, first_ids);
+    engine.reset().expect("cleanup");
+}
+
+#[test]
+fn faiss_prepare_replaces_index_and_reports_count() {
+    let Some(python) = faiss_python() else {
+        return;
+    };
+    let mut engine = FaissEngine::new(python).expect("engine");
+    let (ids, vectors) = six_vectors();
+    let view = CollectionView {
+        dim: 2,
+        ids: &ids,
+        vectors: &vectors,
+    };
+    engine.prepare(&view).expect("first prepare");
+    engine.prepare(&view).expect("second prepare");
+    assert_eq!(engine.search(&[0.0, 0.0], 10).expect("search").len(), 6);
+    assert!(engine.version().contains('.'));
+    assert!(engine.capabilities().exact_mode);
+    assert_eq!(engine.capabilities().distance_metric, Metric::SquaredL2);
+    engine.reset().expect("cleanup");
+}
+
+#[test]
+fn faiss_exact_search_hand_checked_squared_order() {
+    let Some(python) = faiss_python() else {
+        return;
+    };
+    let mut engine = FaissEngine::new(python).expect("engine");
+    let (ids, vectors) = six_vectors();
+    let view = CollectionView {
+        dim: 2,
+        ids: &ids,
+        vectors: &vectors,
+    };
+    engine.prepare(&view).expect("prepare");
+    let hits = engine.search(&[0.0, 0.0], 10).expect("search");
+    let got: Vec<&str> = hits.iter().map(|hit| hit.id.as_str()).collect();
+    assert_eq!(got, ["40", "10", "60", "20", "50", "30"]);
+    let expected = [0.0, 1.0, 2.0, 4.0, 8.0, 9.0];
+    for (hit, distance) in hits.iter().zip(expected) {
+        assert!((hit.distance.expect("squared l2") - distance).abs() < 1e-5);
+    }
     engine.reset().expect("cleanup");
 }

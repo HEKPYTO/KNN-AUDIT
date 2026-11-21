@@ -39,19 +39,32 @@ git clone --depth 1 https://github.com/dynos01/errpedia .data/errpedia
 ./target/release/knn-audit run --dataset .data/errpedia --engine pgvector \
   --database-url postgres://postgres:postgres@127.0.0.1:5432/postgres \
   --out /tmp/pgvector.json --html /tmp/pgvector.html
+./target/release/knn-audit run --dataset .data/errpedia --engine faiss \
+  --faiss-python .venv-faiss/bin/python --out /tmp/faiss.json --html /tmp/faiss.html
 ./target/release/knn-audit report --input /tmp/qdrant.json --html /tmp/qdrant-report.html
 ```
 
-`qdrant` defaults to `http://127.0.0.1:6333`; both engines default to the
+`qdrant` defaults to `http://127.0.0.1:6333`; qdrant and pgvector default to the
 `errpedia_audit` collection. Override with `--engine-url`, `--database-url`
 and `--collection`. Use `--repeat N` for N independent prepare+audit runs; the
 report adds per-run counts, `failed_all`, and `unstable` id-set changes.
+
+FAISS needs Python 3.12 and `faiss-cpu` in a separate environment:
+
+```sh
+uv venv --python 3.12 .venv-faiss
+uv pip install --python .venv-faiss/bin/python 'faiss-cpu==1.12.0'
+```
+
+Pass `--faiss-python .venv-faiss/bin/python`, or set `KNN_AUDIT_FAISS_PYTHON`;
+the default interpreter is `python3`. FAISS uses `IndexFlatL2`, which is exact,
+and reports squared L2 distances.
 
 ## Commands
 
 ```
 knn-audit dataset verify --dataset <dir> [--sample N | --all] [--k 10]
-knn-audit run --dataset <dir> --engine <reference|qdrant|pgvector> [options]
+knn-audit run --dataset <dir> --engine <reference|qdrant|pgvector|faiss> [options]
 knn-audit report --input results/run.json --html results/run.html
 ```
 

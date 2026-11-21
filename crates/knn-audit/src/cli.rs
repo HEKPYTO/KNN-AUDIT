@@ -2,7 +2,7 @@ use crate::dataset::{Dataset, EXPECTED_BASE_SHA256};
 use crate::report::{Report, SCHEMA};
 use crate::run::{RunOptions, run};
 use clap::{Args, Parser, Subcommand};
-use knn_audit_adapters::{Engine, PgVectorEngine, QdrantEngine, ReferenceEngine};
+use knn_audit_adapters::{Engine, FaissEngine, PgVectorEngine, QdrantEngine, ReferenceEngine};
 use std::fmt::Display;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -59,6 +59,8 @@ struct RunArgs {
     collection: String,
     #[arg(long, default_value_t = 1)]
     repeat: usize,
+    #[arg(long)]
+    faiss_python: Option<String>,
 }
 
 #[derive(Subcommand)]
@@ -140,6 +142,7 @@ fn run_command(args: RunArgs) -> ExitCode {
         engine_url,
         database_url,
         collection,
+        faiss_python,
         repeat,
     } = args;
     if repeat == 0 {
@@ -157,7 +160,16 @@ fn run_command(args: RunArgs) -> ExitCode {
         Ok(dataset) => dataset,
         Err(error) => return error_exit(error),
     };
-    let engine = match build_engine(&engine_name, &engine_url, &database_url, &collection) {
+    let faiss_python = faiss_python.unwrap_or_else(|| {
+        std::env::var("KNN_AUDIT_FAISS_PYTHON").unwrap_or_else(|_| "python3".to_string())
+    });
+    let engine = match build_engine(
+        &engine_name,
+        &engine_url,
+        &database_url,
+        &collection,
+        &faiss_python,
+    ) {
         Ok(engine) => engine,
         Err(error) => return error_exit(error),
     };
@@ -206,6 +218,7 @@ fn build_engine(
     engine_url: &str,
     database_url: &str,
     collection: &str,
+    faiss_python: &str,
 ) -> Result<Box<dyn Engine + Send + Sync>, String> {
     match name {
         "reference" => Ok(Box::new(ReferenceEngine::new())),
@@ -215,8 +228,11 @@ fn build_engine(
         "pgvector" => PgVectorEngine::new(database_url, collection)
             .map(|engine| Box::new(engine) as Box<dyn Engine + Send + Sync>)
             .map_err(|error| format!("pgvector prepare failed: {error}")),
+        "faiss" => FaissEngine::new(faiss_python)
+            .map(|engine| Box::new(engine) as Box<dyn Engine + Send + Sync>)
+            .map_err(|error| format!("faiss prepare failed: {error}")),
         other => Err(format!(
-            "engine {other:?} is not available; available engines: reference, qdrant, pgvector"
+            "engine {other:?} is not available; available engines: reference, qdrant, pgvector, faiss"
         )),
     }
 }
