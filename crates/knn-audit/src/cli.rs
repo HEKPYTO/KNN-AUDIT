@@ -2,7 +2,7 @@ use crate::dataset::{Dataset, EXPECTED_BASE_SHA256};
 use crate::report::{Report, SCHEMA};
 use crate::run::{RunOptions, run};
 use clap::{Args, Parser, Subcommand};
-use knn_audit_adapters::{Engine, ReferenceEngine};
+use knn_audit_adapters::{Engine, PgVectorEngine, QdrantEngine, ReferenceEngine};
 use std::fmt::Display;
 use std::fs;
 use std::path::{Path, PathBuf};
@@ -48,6 +48,15 @@ struct RunArgs {
     jobs: Option<usize>,
     #[arg(long, default_value_t = 10)]
     k: usize,
+    #[arg(long, default_value = "http://127.0.0.1:6333")]
+    engine_url: String,
+    #[arg(
+        long,
+        default_value = "postgres://postgres:postgres@127.0.0.1:5432/postgres"
+    )]
+    database_url: String,
+    #[arg(long, default_value = "errpedia_audit")]
+    collection: String,
 }
 
 #[derive(Subcommand)]
@@ -126,6 +135,9 @@ fn run_command(args: RunArgs) -> ExitCode {
         fail_on_mismatch,
         jobs,
         k,
+        engine_url,
+        database_url,
+        collection,
     } = args;
     if let Some(count) = jobs {
         if count == 0 {
@@ -139,9 +151,9 @@ fn run_command(args: RunArgs) -> ExitCode {
         Ok(dataset) => dataset,
         Err(error) => return error_exit(error),
     };
-    let engine: Box<dyn Engine + Send + Sync> = match engine_name.as_str() {
-        "reference" => Box::new(ReferenceEngine::new()),
-        other => return error_exit(format!("engine {other:?} is not available in this build")),
+    let engine = match build_engine(&engine_name, &engine_url, &database_url, &collection) {
+        Ok(engine) => engine,
+        Err(error) => return error_exit(error),
     };
     let result = match run(RunOptions {
         dataset,
@@ -179,6 +191,26 @@ fn run_command(args: RunArgs) -> ExitCode {
         ExitCode::from(1)
     } else {
         ExitCode::SUCCESS
+    }
+}
+
+fn build_engine(
+    name: &str,
+    engine_url: &str,
+    database_url: &str,
+    collection: &str,
+) -> Result<Box<dyn Engine + Send + Sync>, String> {
+    match name {
+        "reference" => Ok(Box::new(ReferenceEngine::new())),
+        "qdrant" => QdrantEngine::new(engine_url, collection)
+            .map(|engine| Box::new(engine) as Box<dyn Engine + Send + Sync>)
+            .map_err(|error| format!("qdrant prepare failed: {error}")),
+        "pgvector" => PgVectorEngine::new(database_url, collection)
+            .map(|engine| Box::new(engine) as Box<dyn Engine + Send + Sync>)
+            .map_err(|error| format!("pgvector prepare failed: {error}")),
+        other => Err(format!(
+            "engine {other:?} is not available; available engines: reference, qdrant, pgvector"
+        )),
     }
 }
 

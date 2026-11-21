@@ -33,13 +33,24 @@ git clone --depth 1 https://github.com/dynos01/errpedia .data/errpedia
 
 ./target/release/knn-audit dataset verify --dataset .data/errpedia --sample 100
 ./target/release/knn-audit run --dataset .data/errpedia --engine reference
+
+./target/release/knn-audit run --dataset .data/errpedia --engine qdrant \
+  --out /tmp/qdrant.json --html /tmp/qdrant.html
+./target/release/knn-audit run --dataset .data/errpedia --engine pgvector \
+  --database-url postgres://postgres:postgres@127.0.0.1:5432/postgres \
+  --out /tmp/pgvector.json --html /tmp/pgvector.html
+./target/release/knn-audit report --input /tmp/qdrant.json --html /tmp/qdrant-report.html
 ```
+
+`qdrant` defaults to `http://127.0.0.1:6333`; both engines default to the
+`errpedia_audit` collection. Override with `--engine-url`, `--database-url`
+and `--collection`.
 
 ## Commands
 
 ```
 knn-audit dataset verify --dataset <dir> [--sample N | --all] [--k 10]
-knn-audit run --dataset <dir> --engine reference [options]
+knn-audit run --dataset <dir> --engine <reference|qdrant|pgvector> [options]
 knn-audit report --input results/run.json --html results/run.html
 ```
 

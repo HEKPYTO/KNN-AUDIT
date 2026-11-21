@@ -156,12 +156,58 @@ fn fail_on_mismatch_controls_exit_code() {
 }
 
 #[test]
-fn unavailable_engine_is_an_adapter_error() {
+fn unavailable_engine_lists_available_names() {
     let output = command()
-        .args(["run", "--dataset", MINI, "--engine", "qdrant"])
+        .args(["run", "--dataset", MINI, "--engine", "bogus"])
         .output()
         .expect("unavailable engine");
     assert_eq!(output.status.code(), Some(2));
+    let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
+    assert!(stderr.contains("reference"));
+    assert!(stderr.contains("qdrant"));
+    assert!(stderr.contains("pgvector"));
+}
+
+#[test]
+fn qdrant_dispatch_reports_adapter_error() {
+    let output = command()
+        .args([
+            "run",
+            "--dataset",
+            MINI,
+            "--engine",
+            "qdrant",
+            "--engine-url",
+            "http://127.0.0.1:1",
+            "--collection",
+            "audit_dead",
+        ])
+        .output()
+        .expect("qdrant dispatch");
+    assert_eq!(output.status.code(), Some(2));
+    let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
+    assert!(stderr.contains("qdrant prepare failed"));
+}
+
+#[test]
+fn pgvector_dispatch_reports_adapter_error() {
+    let output = command()
+        .args([
+            "run",
+            "--dataset",
+            MINI,
+            "--engine",
+            "pgvector",
+            "--database-url",
+            "postgres://postgres:postgres@127.0.0.1:1/postgres?connect_timeout=1",
+            "--collection",
+            "audit_dead",
+        ])
+        .output()
+        .expect("pgvector dispatch");
+    assert_eq!(output.status.code(), Some(2));
+    let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
+    assert!(stderr.contains("pgvector prepare failed"));
 }
 
 #[test]
