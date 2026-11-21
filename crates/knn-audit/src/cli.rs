@@ -1,6 +1,7 @@
 use crate::dataset::{Dataset, EXPECTED_BASE_SHA256};
 use crate::report::{Report, SCHEMA};
 use crate::run::{RunOptions, run};
+use crate::scorecard::{SCORECARD_SCHEMA, Scorecard};
 use clap::{Args, Parser, Subcommand};
 use knn_audit_adapters::{Engine, FaissEngine, PgVectorEngine, QdrantEngine, ReferenceEngine};
 use std::fmt::Display;
@@ -27,6 +28,12 @@ enum Command {
         input: PathBuf,
         #[arg(long)]
         html: Option<PathBuf>,
+    },
+    Publish {
+        #[arg(long)]
+        input: PathBuf,
+        #[arg(long)]
+        out: PathBuf,
     },
 }
 
@@ -90,6 +97,7 @@ pub fn main_entry() -> ExitCode {
         },
         Command::Run(args) => run_command(args),
         Command::Report { input, html } => report_command(input, html),
+        Command::Publish { input, out } => publish_command(input, out),
     }
 }
 
@@ -259,6 +267,30 @@ fn report_command(input: PathBuf, html: Option<PathBuf>) -> ExitCode {
         "report {}: {}/{} failures",
         report.schema, report.summary.failed, report.summary.cases
     );
+    ExitCode::SUCCESS
+}
+
+fn publish_command(input: PathBuf, out: PathBuf) -> ExitCode {
+    let bytes = match fs::read(&input) {
+        Ok(bytes) => bytes,
+        Err(error) => return error_exit(format!("cannot read {}: {error}", input.display())),
+    };
+    let report: Report = match serde_json::from_slice(&bytes) {
+        Ok(report) => report,
+        Err(error) => return error_exit(format!("invalid report {}: {error}", input.display())),
+    };
+    if report.schema != SCHEMA {
+        return error_exit(format!("unsupported report schema {}", report.schema));
+    }
+    let scorecard = Scorecard::from(report);
+    let json = match scorecard.to_json() {
+        Ok(json) => json,
+        Err(error) => return error_exit(error),
+    };
+    if let Err(error) = write_file(&out, &json) {
+        return error_exit(error);
+    }
+    println!("scorecard {}: {}", SCORECARD_SCHEMA, out.display());
     ExitCode::SUCCESS
 }
 
