@@ -12,6 +12,9 @@ pub use crate::reference::ReferenceEngine;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt;
+use std::fmt::Write as _;
+
+pub(crate) const BATCH_SIZE: usize = 1000;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 pub enum Metric {
@@ -38,7 +41,6 @@ pub struct Hit {
 pub struct Caps {
     pub exact_mode: bool,
     pub distance_metric: Metric,
-    pub supports_ids: bool,
 }
 
 #[derive(Debug, Clone, Copy)]
@@ -85,170 +87,129 @@ pub trait Engine {
     fn prepare(&mut self, collection: &CollectionView<'_>) -> Result<(), AdapterError>;
     fn search(&self, query: &[f32], k: usize) -> Result<Vec<Hit>, AdapterError>;
     fn capabilities(&self) -> Caps;
-    fn reset(&mut self) -> Result<(), AdapterError> {
-        Ok(())
+}
+
+pub(crate) fn validate_collection(collection: &CollectionView<'_>) -> Result<(), AdapterError> {
+    if collection.dim == 0 || collection.vectors.len() != collection.ids.len() * collection.dim {
+        return Err(AdapterError::new(format!(
+            "count mismatch: collection has {} values, expected {} for {} vectors of dimension {}",
+            collection.vectors.len(),
+            collection.ids.len() * collection.dim,
+            collection.ids.len(),
+            collection.dim
+        )));
     }
+    Ok(())
+}
+
+pub(crate) fn verify_count(actual: u64, expected: usize) -> Result<(), AdapterError> {
+    if actual as usize != expected {
+        return Err(AdapterError::new(format!(
+            "count mismatch: engine reports {actual}, collection has {expected}"
+        )));
+    }
+    Ok(())
+}
+
+pub(crate) fn batches(ids: &[u64]) -> impl Iterator<Item = (usize, &[u64])> {
+    ids.chunks(BATCH_SIZE)
+        .enumerate()
+        .map(|(batch, chunk)| (batch * BATCH_SIZE, chunk))
+}
+
+pub(crate) fn id_string(id: u64) -> String {
+    id.to_string()
+}
+
+pub(crate) fn vector_text(values: &[f32]) -> String {
+    let mut text = String::from("[");
+    for (index, value) in values.iter().enumerate() {
+        if index > 0 {
+            text.push(',');
+        }
+        write!(&mut text, "{value}").expect("write to string");
+    }
+    text.push(']');
+    text
+}
+
+pub(crate) fn valid_name(name: &str) -> bool {
+    let mut chars = name.chars();
+    chars
+        .next()
+        .is_some_and(|first| first.is_ascii_alphabetic() || first == '_')
+        && chars.all(|c| c.is_ascii_alphanumeric() || c == '_')
+        && name.len() <= 63
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
-    struct FakeEngine {
-        ids: Vec<String>,
-        expected_count: usize,
-        exact: bool,
-        prepared: bool,
-    }
-
-    impl FakeEngine {
-        fn new(ids: &[&str], expected_count: usize, exact: bool) -> Self {
-            Self {
-                ids: ids.iter().map(|id| (*id).to_string()).collect(),
-                expected_count,
-                exact,
-                prepared: false,
-            }
-        }
-    }
-
-    impl Engine for FakeEngine {
-        fn name(&self) -> &'static str {
-            "fake"
-        }
-
-        fn version(&self) -> String {
-            "fake-1".to_string()
-        }
-
-        fn prepare(&mut self, collection: &CollectionView<'_>) -> Result<(), AdapterError> {
-            if collection.ids.len() != self.expected_count {
-                return Err(AdapterError::new(format!(
-                    "count mismatch: engine reports {}, collection has {}",
-                    self.expected_count,
-                    collection.ids.len()
-                )));
-            }
-            self.prepared = true;
-            Ok(())
-        }
-
-        fn search(&self, query: &[f32], k: usize) -> Result<Vec<Hit>, AdapterError> {
-            if !self.prepared {
-                return Err(AdapterError::new("engine is not prepared"));
-            }
-            if !self.exact {
-                return Err(AdapterError::new("engine cannot guarantee exact mode"));
-            }
-            if query.is_empty() {
-                return Err(AdapterError::new("empty query"));
-            }
-            Ok(self
-                .ids
-                .iter()
-                .take(k)
-                .map(|id| Hit {
-                    id: id.clone(),
-                    distance: Some(1.0),
-                })
-                .collect())
-        }
-
-        fn capabilities(&self) -> Caps {
-            Caps {
-                exact_mode: self.exact,
-                distance_metric: Metric::SquaredL2,
-                supports_ids: true,
-            }
-        }
-    }
-
     #[test]
-    fn fake_prepare_is_idempotent_and_replaces_collection() {
+    fn validate_collection_accepts_matching_vectors() {
         let view = CollectionView {
             dim: 2,
             ids: &[1, 2],
             vectors: &[0.0, 0.0, 1.0, 1.0],
         };
-        let mut engine = FakeEngine::new(&["a", "b"], 2, true);
-        engine.prepare(&view).expect("first prepare");
-        engine.prepare(&view).expect("second prepare");
-        assert_eq!(
-            engine.search(&[0.0, 0.0], 2).expect("search"),
-            vec![
-                Hit {
-                    id: "a".into(),
-                    distance: Some(1.0)
-                },
-                Hit {
-                    id: "b".into(),
-                    distance: Some(1.0)
-                }
-            ]
-        );
+        validate_collection(&view).expect("valid collection");
     }
 
     #[test]
-    fn fake_reports_collection_count_mismatch() {
-        let view = CollectionView {
+    fn validate_collection_rejects_zero_dimension_and_short_vectors() {
+        let zero = CollectionView {
+            dim: 0,
+            ids: &[1],
+            vectors: &[],
+        };
+        let error = validate_collection(&zero).expect_err("zero dimension");
+        assert!(error.message.contains("count mismatch"));
+        let short = CollectionView {
             dim: 2,
             ids: &[1, 2],
-            vectors: &[0.0, 0.0, 1.0, 1.0],
+            vectors: &[0.0, 0.0, 1.0],
         };
-        let mut engine = FakeEngine::new(&["a"], 3, true);
-        let error = engine.prepare(&view).expect_err("count mismatch");
+        let error = validate_collection(&short).expect_err("short vectors");
+        assert!(error.message.contains("expected 4"));
         assert!(error.message.contains("count mismatch"));
     }
 
     #[test]
-    fn fake_caps_at_k_larger_than_collection() {
-        let view = CollectionView {
-            dim: 2,
-            ids: &[7],
-            vectors: &[0.0, 0.0],
-        };
-        let mut engine = FakeEngine::new(&["only"], 1, true);
-        engine.prepare(&view).expect("prepare");
-        assert_eq!(engine.search(&[0.0, 0.0], 10).expect("search").len(), 1);
-        assert!(engine.capabilities().exact_mode);
-        assert_eq!(engine.capabilities().distance_metric, Metric::SquaredL2);
-    }
-
-    #[test]
-    fn fake_errors_without_exact_mode() {
-        let view = CollectionView {
-            dim: 1,
-            ids: &[1],
-            vectors: &[0.0],
-        };
-        let mut engine = FakeEngine::new(&["a"], 1, false);
-        engine.prepare(&view).expect("prepare");
-        assert!(engine.search(&[0.0], 1).is_err());
-    }
-
-    #[test]
-    fn fake_preserves_unicode_id_strings_and_engine_order() {
-        let ids: Vec<String> =
-            serde_json::from_str(include_str!("../../../fixtures/unicode-ids/ids.json"))
-                .expect("unicode ids fixture");
-        let numeric_ids: Vec<u64> = (0..ids.len() as u64).collect();
-        let vectors = vec![0.0; ids.len()];
-        let view = CollectionView {
-            dim: 1,
-            ids: &numeric_ids,
-            vectors: &vectors,
-        };
-        let mut engine = FakeEngine::new(
-            &ids.iter().map(String::as_str).collect::<Vec<_>>(),
-            ids.len(),
-            true,
-        );
-        engine.prepare(&view).expect("prepare");
-        let hits = engine.search(&[0.0], ids.len()).expect("search");
+    fn verify_count_accepts_match_and_reports_mismatch() {
+        verify_count(3, 3).expect("match");
+        let error = verify_count(2, 3).expect_err("mismatch");
         assert_eq!(
-            hits.into_iter().map(|hit| hit.id).collect::<Vec<_>>(),
-            ids,
-            "ids must round-trip as strings without re-sorting"
+            error.message,
+            "count mismatch: engine reports 2, collection has 3"
         );
+    }
+
+    #[test]
+    fn batches_returns_absolute_starts_and_slices() {
+        let ids: Vec<u64> = (0..(BATCH_SIZE + 3) as u64).collect();
+        let parts: Vec<_> = batches(&ids)
+            .map(|(start, chunk)| (start, chunk.len(), chunk[0]))
+            .collect();
+        assert_eq!(
+            parts,
+            vec![(0, BATCH_SIZE, 0), (BATCH_SIZE, 3, BATCH_SIZE as u64)]
+        );
+    }
+
+    #[test]
+    fn id_string_and_vector_text_use_expected_text_format() {
+        assert_eq!(id_string(7), "7");
+        assert_eq!(vector_text(&[1.0, -2.5]), "[1,-2.5]");
+    }
+
+    #[test]
+    fn valid_name_enforces_one_shared_grammar() {
+        assert!(valid_name("audit_1"));
+        assert!(valid_name("_"));
+        assert!(!valid_name("1audit"));
+        assert!(!valid_name("audit-1"));
+        assert!(!valid_name(""));
+        assert!(!valid_name(&"a".repeat(64)));
     }
 }

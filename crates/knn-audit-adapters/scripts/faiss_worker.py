@@ -28,19 +28,17 @@ def handle(request):
     if not isinstance(request, dict):
         raise ValueError("request must be a JSON object")
     op = request.get("op")
-    if op == "close":
-        return {"ok": True}, True
     if IMPORT_ERROR is not None:
         raise RuntimeError(IMPORT_ERROR)
     if op == "version":
-        return {"version": str(faiss.__version__)}, False
+        return {"version": str(faiss.__version__)}
     if op == "create":
         dim = request.get("dim")
         if not isinstance(dim, int) or isinstance(dim, bool) or dim <= 0:
             raise ValueError("dim must be a positive integer")
         state["index"] = faiss.IndexFlatL2(dim)
         state["ids"] = []
-        return {"ok": True}, False
+        return {"ok": True}
     if op == "add":
         index = require_index()
         ids = request.get("ids")
@@ -51,13 +49,13 @@ def handle(request):
         if len(vectors) != len(ids) * dim:
             raise ValueError(f"vectors has {len(vectors)} values, expected {len(ids) * dim}")
         if not ids:
-            return {"ok": True}, False
+            return {"ok": True}
         array = np.asarray(vectors, dtype=np.float32).reshape(len(ids), dim)
         index.add(array)
         state["ids"].extend(ids)
-        return {"ok": True}, False
+        return {"ok": True}
     if op == "count":
-        return {"count": require_index().ntotal}, False
+        return {"count": require_index().ntotal}
     if op == "search":
         index = require_index()
         query = request.get("query")
@@ -68,7 +66,7 @@ def handle(request):
             raise ValueError("k must be a positive integer")
         k_eff = min(k, index.ntotal)
         if k_eff == 0:
-            return [], False
+            return {"hits": []}
         array = np.asarray(query, dtype=np.float32).reshape(1, index.d)
         distances, labels = index.search(array, k_eff)
         ids = state["ids"]
@@ -80,20 +78,14 @@ def handle(request):
             if position >= len(ids):
                 raise ValueError(f"faiss returned unknown index {position}")
             hits.append({"id": ids[position], "distance": float(distance)})
-        return hits, False
-    if op == "reset":
-        state["index"] = None
-        state["ids"] = []
-        return {"ok": True}, False
+        return {"hits": hits}
     raise ValueError(f"unknown op {op!r}")
 
 
 for line in sys.stdin:
     try:
-        response, done = handle(json.loads(line))
+        response = handle(json.loads(line))
     except Exception as exc:
-        response, done = {"error": str(exc)}, False
+        response = {"error": str(exc)}
     sys.stdout.write(json.dumps(response) + "\n")
     sys.stdout.flush()
-    if done:
-        break

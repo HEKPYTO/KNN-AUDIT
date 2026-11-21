@@ -52,7 +52,6 @@ impl Engine for EpochEngine {
         Caps {
             exact_mode: true,
             distance_metric: Metric::SquaredL2,
-            supports_ids: true,
         }
     }
 }
@@ -80,7 +79,6 @@ impl Engine for ErrorEngine {
         Caps {
             exact_mode: true,
             distance_metric: Metric::SquaredL2,
-            supports_ids: true,
         }
     }
 }
@@ -111,7 +109,6 @@ impl Engine for BadIdEngine {
         Caps {
             exact_mode: true,
             distance_metric: Metric::SquaredL2,
-            supports_ids: true,
         }
     }
 }
@@ -161,7 +158,6 @@ impl Engine for SecondPrepareEngine {
         Caps {
             exact_mode: true,
             distance_metric: Metric::SquaredL2,
-            supports_ids: true,
         }
     }
 }
