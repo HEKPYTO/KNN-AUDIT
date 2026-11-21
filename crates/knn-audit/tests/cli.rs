@@ -393,6 +393,7 @@ const SECRET_ROOT: &str = "/private/tmp/errpedia-secret-dataset";
 fn publish_report() -> Value {
     serde_json::json!({
         "schema": "knn-audit/v1",
+        "tool": {"name": "knn-audit", "version": "0.1.0"},
         "created_at": "2026-11-21T00:00:00Z",
         "dataset": {
             "root": SECRET_ROOT,
@@ -499,6 +500,8 @@ fn publish_writes_redacted_deterministic_scorecard() {
     );
     let scorecard: Value = serde_json::from_str(&first_text).expect("scorecard json");
     assert_eq!(scorecard["schema"], "knn-audit-scorecard/v1");
+    assert_eq!(scorecard["tool"]["name"], "knn-audit");
+    assert_eq!(scorecard["tool"]["version"], "0.1.0");
     assert_eq!(scorecard["dataset"]["base_sha256"], "abc123");
     assert_eq!(scorecard["dataset"]["base_rows"], 32);
     assert_eq!(scorecard["dataset"]["cases"], 3);
@@ -845,6 +848,8 @@ fn engine_config_flows_from_run_to_published_scorecard() {
     let text = fs::read_to_string(&out).expect("scorecard");
     let scorecard: Value = serde_json::from_str(&text).expect("scorecard json");
     assert_eq!(scorecard["engine"]["config"], expected);
+    assert_eq!(scorecard["tool"]["name"], "knn-audit");
+    assert_eq!(scorecard["tool"]["version"], "0.1.0");
     assert_eq!(scorecard["summary"]["order_only"], 0);
     let mut keys = Vec::new();
     let mut strings = Vec::new();

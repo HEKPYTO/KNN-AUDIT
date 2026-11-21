@@ -7,8 +7,14 @@ pub const SCHEMA: &str = "knn-audit/v1";
 pub const SCORECARD_SCHEMA: &str = "knn-audit-scorecard/v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct ToolInfo {
+    pub name: String,
+    pub version: String,
+}
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Report {
     pub schema: String,
+    pub tool: ToolInfo,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub created_at: Option<String>,
     pub dataset: DatasetInfo,
