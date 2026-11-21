@@ -1,0 +1,9 @@
+/target/
+/.data/
+/.trail/
+AGENTS.md
+PAPER.md
+docs/
+results/*.html
+*.hprof
+.DS_Store
