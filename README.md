@@ -40,7 +40,7 @@ docker run -d --name errpedia-pg -e POSTGRES_PASSWORD=postgres -p 5432:5432 \
   pgvector/pgvector:0.8.7-pg19
 
 ./target/release/knn-audit run --dataset .data/errpedia --engine qdrant \
-  --repeat 3 --out /tmp/qdrant.json --html /tmp/qdrant.html
+  --repeat 10 --out /tmp/qdrant.json --html /tmp/qdrant.html
 ./target/release/knn-audit run --dataset .data/errpedia --engine pgvector \
   --database-url postgres://postgres:postgres@127.0.0.1:5432/postgres \
   --out /tmp/pgvector.json --html /tmp/pgvector.html
