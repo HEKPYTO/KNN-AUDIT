@@ -341,10 +341,10 @@ fn real_dataset() -> Option<PathBuf> {
     if let Some(path) = std::env::var_os("ERRPEDIA_DATASET") {
         candidates.push(PathBuf::from(path));
     }
-    candidates.extend([
-        PathBuf::from("../../../.data/errpedia"),
-        PathBuf::from(".data/errpedia"),
-    ]);
+    candidates.push(PathBuf::from(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../.data/errpedia"
+    )));
     candidates
         .into_iter()
         .find(|path| path.join("data").join("base.csv").exists())
@@ -389,7 +389,7 @@ fn real_reference_run_reports_clean() {
         .output()
         .expect("reference run");
     assert_eq!(output.status.code(), Some(0), "{}", stdout(&output));
-    assert!(stdout(&output).contains("0/1616 cases mismatch (0 missing, 0 extra, 0 rank swaps)"));
+    assert!(stdout(&output).contains("(repeat 1): 0/1616 cases mismatch any (0 in every run, 0 unstable; 0 errors; 0 missing, 0 extra, 0 rank swaps)"));
 }
 
 const FAKE_FAISS_WORKER: &str = r#"#!/usr/bin/env python3
@@ -437,6 +437,7 @@ for line in sys.stdin:
 "#;
 
 #[test]
+#[cfg(unix)]
 fn faiss_dispatch_uses_python_protocol_worker() {
     use std::os::unix::fs::PermissionsExt;
 

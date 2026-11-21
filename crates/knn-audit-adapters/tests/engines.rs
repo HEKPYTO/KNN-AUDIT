@@ -271,3 +271,24 @@ fn faiss_exact_search_hand_checked_squared_order() {
     }
     engine.reset().expect("cleanup");
 }
+
+#[test]
+fn faiss_search_reports_squared_l2_overflow() {
+    let Some(python) = faiss_python() else {
+        return;
+    };
+    let mut engine = FaissEngine::new(python).expect("engine");
+    let ids = vec![0, 1];
+    let mut vectors = vec![f32::MAX; 256];
+    vectors[128..].fill(-f32::MAX);
+    let view = CollectionView {
+        dim: 128,
+        ids: &ids,
+        vectors: &vectors,
+    };
+    engine.prepare(&view).expect("prepare");
+    let error = engine
+        .search(&vec![f32::MAX; 128], 2)
+        .expect_err("overflow must be an adapter error");
+    assert!(error.message.contains("overflow"), "{}", error.message);
+}

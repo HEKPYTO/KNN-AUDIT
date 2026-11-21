@@ -73,7 +73,6 @@ pub struct RunSummary {
     pub missing: usize,
     pub extra: usize,
     pub rank_swaps: usize,
-    pub unstable: usize,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -142,18 +141,17 @@ impl Report {
             self.summary.unstable
         );
         if !self.runs.is_empty() {
-            html.push_str("<h2>Runs</h2><table><tr><th>run</th><th>failed</th><th>errors</th><th>missing</th><th>extra</th><th>rank swaps</th><th>unstable</th></tr>");
+            html.push_str("<h2>Runs</h2><table><tr><th>run</th><th>failed</th><th>errors</th><th>missing</th><th>extra</th><th>rank swaps</th></tr>");
             for (index, item) in self.runs.iter().enumerate() {
                 let _ = write!(
                     html,
-                    "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>",
+                    "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>",
                     index + 1,
                     item.failed,
                     item.errors,
                     item.missing,
                     item.extra,
-                    item.rank_swaps,
-                    item.unstable
+                    item.rank_swaps
                 );
             }
             html.push_str("</table>");

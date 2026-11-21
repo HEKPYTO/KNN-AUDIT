@@ -19,7 +19,7 @@ top-10 in exact/brute-force mode and compares id sets:
 |---|---|---|
 | `missing` | correct id absent from the engine's answer | yes |
 | `extra` | incorrect id present | yes |
-| `rank_swap` | same set, different order | no (reported) |
+| `rank_swap` | expected id at a different rank (reported; may co-occur with set differences) | no |
 | `error` | engine failed the query | yes |
 
 Ground truth is the oracle. The auditor never declares correctness from a
@@ -68,12 +68,13 @@ knn-audit run --dataset <dir> --engine <reference|qdrant|pgvector|faiss> [option
 knn-audit report --input results/run.json --html results/run.html
 ```
 
+`--limit N` audits only the first N cases.
+
 `run` writes `results/<engine>.json` (`knn-audit/v1`), prints a category table,
 and exits `1` when `--fail-on-mismatch` is set and the answer has missing ids,
 extra ids, or adapter errors. Rank swaps are reported in the table, categories
-and report but do not fail the run. Every failure carries the query vector,
-expected ids, actual ids, and the dataset sha256 so the case can be reproduced
-without the dataset copy that produced it.
+and report but do not fail the run. Every report carries the dataset sha256;
+each failure carries the query vector, expected ids, and actual ids.
 
 ## Results
 
@@ -96,6 +97,8 @@ The benchmark data is not distributed with this repository and is not
 redistributed by it. Point `--dataset` at a local clone. The tool verifies the
 `base.csv` sha256 and re-derives top-k with exact rational arithmetic in
 `dataset verify`.
+
+Set `ERRPEDIA_DATASET=<dir>` to point gated real-dataset tests at a local clone.
 
 ## Crates
 
