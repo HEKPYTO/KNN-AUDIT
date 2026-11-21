@@ -1,7 +1,7 @@
-006fb4e95676e549b21f0498b0238e31541bc92cc9870026c6474dbbbdbecb30  results/scorecards/faiss-1.12.0.json
-4245e9d3cac3bde5b81487f1b021b8a1219f1701390f2e6c79531b31cc4da166  results/scorecards/pgvector-0.8.7.json
-04a751c1ca6c91c383f64447096aab06ad45abf120d2df61235e4ff587af6465  results/scorecards/qdrant-1.20.2-repeat10-a.json
-06ddb071ba717827ef9da6d39695d02365e27a6d20e19cead1e8f0856edce9fa  results/scorecards/qdrant-1.20.2-repeat10-b.json
-7e23aa33bd524b21e6e81d7bf19d780ab30d24f190c6f6de8df2c53bc1583cc2  results/scorecards/qdrant-1.20.2-repeat10-c.json
-db613502e58c61e87016597d69982b1d70e2502137977833ef9dd47a5597e3f8  results/scorecards/qdrant-1.20.2-repeat10-d.json
-35245b3524c193cdc75e750b51b13e1de9bddc1f8ae2b9a1b6f379e28ff8dde7  results/scorecards/reference-0.1.0.json
+0791aa9c8455fbe66313e08353a38bc1fa251d59d54280d320c35ccb019eeb3d  results/scorecards/faiss-1.12.0.json
+6d0cd343c7a8e16bd4d41a646fd9baa227070ec0e8cd48838b5b0af70062b465  results/scorecards/pgvector-0.8.7.json
+72b61e7f7207d94b187b8a947ffa6d6fb9dd44ecaec3a7652507f0c06f447967  results/scorecards/qdrant-1.20.2-repeat10-a.json
+8add76e019cf04cb69c15a269aee76bbf8ac62820fbb9e93f0aee854fe6c5e9d  results/scorecards/qdrant-1.20.2-repeat10-b.json
+d078b2b1d4cb028579ff0b8f314399e2fce3b0a2e21f402402225f69742007b0  results/scorecards/qdrant-1.20.2-repeat10-c.json
+1107cc66c9e70f897a8f44dcd8d32ad11d9ac61a68ff243c4be138267486fa97  results/scorecards/qdrant-1.20.2-repeat10-d.json
+fe59f5dd150b7b03a856a3a45324712727bd6efcdc9f0a8bca82b8aa7adc6bc1  results/scorecards/reference-0.1.0.json
