@@ -28,17 +28,21 @@ mkdir -p results/scorecards
 for engine in reference qdrant pgvector faiss; do
   report="results/$engine.json"
   scorecard="results/scorecards/$engine.json"
-  args=(run --dataset "$DATASET" --engine "$engine" --repeat 3 --out "$report"
+  repeat=3
+  if [[ $engine == qdrant ]]; then
+    repeat=10
+  fi
+  args=(run --dataset "$DATASET" --engine "$engine" --repeat "$repeat" --out "$report"
     --engine-url "$QDRANT_URL" --database-url "$DATABASE_URL")
   if [[ $engine == faiss ]]; then
     args+=(--faiss-python "$FAISS_PYTHON")
   fi
   "$KNN_AUDIT" "${args[@]}" >/dev/null
-  jq -e '.schema == "knn-audit/v1" and .summary.cases == 1616 and (.runs | length) == 3' "$report" >/dev/null
+  jq -e --argjson repeat "$repeat" '.schema == "knn-audit/v1" and .summary.cases == 1616 and (.runs | length) == $repeat' "$report" >/dev/null
   case $engine in
     pgvector) jq -e '.summary.failed == 546 and .summary.unstable == 0' "$report" >/dev/null ;;
     faiss) jq -e '.summary.failed == 545 and .summary.errors == 31' "$report" >/dev/null ;;
-    qdrant) jq -e '.summary.failed > 0 and .summary.failed_all > 0 and .summary.unstable > 0' "$report" >/dev/null ;;
+    qdrant) jq -e '(.runs | length) == 10 and ([.runs[].failed] | all(. >= 700 and . <= 900)) and (.summary.failed >= 1100 and .summary.failed <= 1200) and (.summary.failed_all >= 400 and .summary.failed_all <= 500) and (.summary.unstable >= 800 and .summary.unstable <= 900)' "$report" >/dev/null ;;
   esac
   "$KNN_AUDIT" publish --input "$report" --out "$scorecard"
   jq -e '.schema == "knn-audit-scorecard/v1"' "$scorecard" >/dev/null
