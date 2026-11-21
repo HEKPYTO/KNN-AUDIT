@@ -1,4 +1,4 @@
-# Errpedia Auditor
+# KNN-AUDITOR
 
 Audit whether an "exact" k-NN search is actually exact.
 
