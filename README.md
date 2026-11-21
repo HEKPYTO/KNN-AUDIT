@@ -123,6 +123,9 @@ Set `ERRPEDIA_DATASET=<dir>` to point gated real-dataset tests at a local clone.
 the full audit against pinned Qdrant, pgvector and FAISS engines and publishes
 redacted scorecards from `results/scorecards/`.
 
+CI uses `--repeat 10` for Qdrant and `--repeat 3` for reference, pgvector
+and FAISS.
+
 With both containers running and a local dataset clone, the audit runs locally
 with `jq`, `curl` and `faiss-cpu` installed:
 
