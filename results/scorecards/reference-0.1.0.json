@@ -1,0 +1,160 @@
+{
+  "schema": "knn-audit-scorecard/v1",
+  "created_at": "2026-11-21T07:52:42Z",
+  "dataset": {
+    "base_sha256": "c0158e652bf8bcd4ad8a42aa8eb642325ca76897109431241ada0ac7490d4beb",
+    "base_rows": 22501,
+    "cases": 1616,
+    "dim": 128
+  },
+  "engine": {
+    "name": "reference",
+    "version": "0.1.0",
+    "exact_mode": true,
+    "metric": "squared_l2"
+  },
+  "k": 10,
+  "repeat": 3,
+  "runs": [
+    {
+      "failed": 0,
+      "errors": 0,
+      "missing": 0,
+      "extra": 0,
+      "rank_swaps": 0
+    },
+    {
+      "failed": 0,
+      "errors": 0,
+      "missing": 0,
+      "extra": 0,
+      "rank_swaps": 0
+    },
+    {
+      "failed": 0,
+      "errors": 0,
+      "missing": 0,
+      "extra": 0,
+      "rank_swaps": 0
+    }
+  ],
+  "summary": {
+    "cases": 1616,
+    "passed": 1616,
+    "failed": 0,
+    "errors": 0,
+    "missing": 0,
+    "extra": 0,
+    "rank_swaps": 0,
+    "unstable": 0,
+    "failed_all": 0
+  },
+  "categories": [
+    {
+      "category": "absorb",
+      "cases": 150,
+      "failed": 0
+    },
+    {
+      "category": "collision_ladder",
+      "cases": 83,
+      "failed": 0
+    },
+    {
+      "category": "decimal_ingest",
+      "cases": 12,
+      "failed": 0
+    },
+    {
+      "category": "diff_overflow",
+      "cases": 6,
+      "failed": 0
+    },
+    {
+      "category": "exp_similarity",
+      "cases": 8,
+      "failed": 0
+    },
+    {
+      "category": "fp16_absorb",
+      "cases": 6,
+      "failed": 0
+    },
+    {
+      "category": "fp16_overflow",
+      "cases": 9,
+      "failed": 0
+    },
+    {
+      "category": "fp16_term",
+      "cases": 14,
+      "failed": 0
+    },
+    {
+      "category": "fp16_underflow",
+      "cases": 96,
+      "failed": 0
+    },
+    {
+      "category": "max_sentinel",
+      "cases": 6,
+      "failed": 0
+    },
+    {
+      "category": "neartie",
+      "cases": 405,
+      "failed": 0
+    },
+    {
+      "category": "normdot_cancel",
+      "cases": 49,
+      "failed": 0
+    },
+    {
+      "category": "normdot_overflow",
+      "cases": 20,
+      "failed": 0
+    },
+    {
+      "category": "order_disc",
+      "cases": 480,
+      "failed": 0
+    },
+    {
+      "category": "overflow_inf",
+      "cases": 19,
+      "failed": 0
+    },
+    {
+      "category": "sim_saturation",
+      "cases": 30,
+      "failed": 0
+    },
+    {
+      "category": "sq_round",
+      "cases": 59,
+      "failed": 0
+    },
+    {
+      "category": "sq_subnormal",
+      "cases": 28,
+      "failed": 0
+    },
+    {
+      "category": "sq_underflow",
+      "cases": 50,
+      "failed": 0
+    },
+    {
+      "category": "sqrt",
+      "cases": 28,
+      "failed": 0
+    },
+    {
+      "category": "sub",
+      "cases": 58,
+      "failed": 0
+    }
+  ],
+  "failures": []
+}
