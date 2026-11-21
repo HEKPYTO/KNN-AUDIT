@@ -174,7 +174,8 @@ fn run_command(args: RunArgs) -> ExitCode {
         println!("html: {}", html.display());
     }
     println!("{}", result.summary_line);
-    if fail_on_mismatch && result.report.summary.failed > 0 {
+    let summary = &result.report.summary;
+    if fail_on_mismatch && (summary.missing > 0 || summary.extra > 0 || summary.errors > 0) {
         ExitCode::from(1)
     } else {
         ExitCode::SUCCESS

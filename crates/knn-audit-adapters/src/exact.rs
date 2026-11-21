@@ -28,6 +28,35 @@ impl ExactDistance {
             pow2(bits + 2 * self.exponent),
         )
     }
+
+    pub fn cmp_f64(&self, other: f64) -> Ordering {
+        assert!(!other.is_nan(), "cannot compare exact distance with NaN");
+        if other < 0.0 {
+            return Ordering::Greater;
+        }
+        if other == 0.0 {
+            return if self.value.is_zero() {
+                Ordering::Equal
+            } else {
+                Ordering::Greater
+            };
+        }
+        if other.is_infinite() {
+            return Ordering::Less;
+        }
+        let bits = other.to_bits();
+        let biased = ((bits >> 52) & 0x7ff) as i32;
+        let fraction = bits & ((1_u64 << 52) - 1);
+        let (mantissa, exponent) = if biased == 0 {
+            (fraction, -1074)
+        } else {
+            (fraction | (1_u64 << 52), biased - 1075)
+        };
+        let base = (2 * self.exponent).min(exponent);
+        let left = &self.value << ((2 * self.exponent - base) as u32);
+        let right = BigInt::from(mantissa) << ((exponent - base) as u32);
+        left.cmp(&right)
+    }
 }
 
 impl Ord for ExactDistance {

@@ -392,7 +392,6 @@ dependencies = [
  "chrono",
  "clap",
  "knn-audit-adapters",
- "num-bigint",
  "rayon",
  "serde",
  "serde_json",

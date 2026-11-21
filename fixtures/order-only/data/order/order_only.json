@@ -1,0 +1,7 @@
+{
+  "case_id": "order_only",
+  "category": "order",
+  "query_row": 0,
+  "query": [0, 0],
+  "gt_ids": [1, 0, 2]
+}
