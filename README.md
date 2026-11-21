@@ -111,6 +111,22 @@ redistributed by it. Point `--dataset` at a local clone. The tool verifies the
 
 Set `ERRPEDIA_DATASET=<dir>` to point gated real-dataset tests at a local clone.
 
+## CI
+
+`ci` checks format, lint, unit tests and the release build. `integration` runs
+the full audit against pinned Qdrant, pgvector and FAISS engines and publishes
+redacted scorecards from `results/scorecards/`.
+
+With both containers running and a local dataset clone, the audit runs locally
+with `jq`, `curl` and `faiss-cpu` installed:
+
+```sh
+python3 -m pip install -r scripts/requirements-faiss.txt
+cargo build --release
+KNN_AUDIT=./target/release/knn-audit DATASET=.data/errpedia \
+  FAISS_PYTHON=.venv-faiss/bin/python ./scripts/ci-audit.sh
+```
+
 ## Crates
 
 | Crate | Contents |
