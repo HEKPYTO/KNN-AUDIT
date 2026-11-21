@@ -91,23 +91,27 @@ for reproducible output.
 
 Measured 2026-11-21 on 1,616 queries, 22,501 x 128 `fp32` vectors:
 
-| Engine | Version | Wrong cases (any) | Wrong in every run | Unstable | Errors |
+| Engine | Version | Wrong per reload | Wrong every reload | Unstable | Errors |
 |---|---|---:|---:|---:|---:|
-| reference | 0.1.0 | 0/1616 | 0 | 0 | 0 |
-| Qdrant | 1.20.2 | 1056/1616 | 533 | 676 | 0 |
-| pgvector | 0.8.7 | 546/1616 | 546 | 0 | 0 |
-| FAISS | 1.12.0 | 545/1616 | 545 | 0 | 31 |
+| reference | 0.1.0 | 0 | 0 | 0 | 0 |
+| Qdrant | 1.20.2 | 782-816 | 450 | 851 | 0 |
+| pgvector | 0.8.7 | 546 | 546 | 0 | 0 |
+| FAISS | 1.12.0 | 545 | 545 | 0 | 31 |
 
-Qdrant's tie order is non-contractual, so its counts vary by a few cases across
-reloads; `--repeat 3` reports every run instead of one number. See
-[`results/README.md`](results/README.md) for the method and caveats.
+Qdrant's tie order is non-contractual. Over 10 independent reloads, 1,147
+queries were wrong at least once and 450 were wrong every time, so its score
+is a range, not one number. FAISS overflows f32 squared L2 on 31 queries and
+returns no neighbors; those count as errors with all expected ids missing.
+See [`results/README.md`](results/README.md) for per-run evidence, the claim
+ladder, disclosure status, and limits.
 
 ## Dataset
 
 The benchmark data is not distributed with this repository and is not
-redistributed by it. Point `--dataset` at a local clone. The tool verifies the
-`base.csv` sha256 and re-derives top-k with exact rational arithmetic in
-`dataset verify`.
+redistributed by it. The dataset has no declared license. Point `--dataset` at
+a local clone at commit `ba9bfbb7649b34d0c7619e2cf10bf6acb9fd6d06`. The tool
+verifies the `base.csv` sha256 and re-derives top-k with exact rational
+arithmetic in `dataset verify`. Public scorecards contain no query vectors.
 
 Set `ERRPEDIA_DATASET=<dir>` to point gated real-dataset tests at a local clone.
 
