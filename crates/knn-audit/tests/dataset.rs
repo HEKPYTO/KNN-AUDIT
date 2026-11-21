@@ -70,15 +70,24 @@ fn non_finite_coordinates_fail_loudly() {
     assert!(error.message.contains("non-finite"));
 }
 
+#[test]
+fn verify_rejects_out_of_range_case_index() {
+    let dataset = Dataset::load(MINI).expect("mini fixture");
+    let error = dataset
+        .verify(&[dataset.cases.len()], 10)
+        .expect_err("out of range index");
+    assert!(error.message.contains("out of range"));
+}
+
 fn real_dataset() -> Option<PathBuf> {
     let mut candidates = Vec::new();
     if let Some(path) = std::env::var_os("ERRPEDIA_DATASET") {
         candidates.push(PathBuf::from(path));
     }
-    candidates.extend([
-        PathBuf::from("../../../.data/errpedia"),
-        PathBuf::from(".data/errpedia"),
-    ]);
+    candidates.push(PathBuf::from(concat!(
+        env!("CARGO_MANIFEST_DIR"),
+        "/../../.data/errpedia"
+    )));
     candidates
         .into_iter()
         .find(|path| path.join("data").join("base.csv").exists())

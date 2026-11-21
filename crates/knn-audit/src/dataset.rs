@@ -224,7 +224,12 @@ impl Dataset {
         let collection = self.collection();
         let mut mismatches = Vec::new();
         for &index in indices {
-            let case = &self.cases[index];
+            let case = self.cases.get(index).ok_or_else(|| {
+                DatasetError::new(format!(
+                    "case index {index} is out of range for {} cases",
+                    self.cases.len()
+                ))
+            })?;
             let mut expected = self.expected_ids(case, k)?;
             let mut actual = top_k_exact(&case.query, &collection, k);
             expected.sort_unstable();

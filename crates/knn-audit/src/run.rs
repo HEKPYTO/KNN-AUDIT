@@ -74,16 +74,14 @@ pub fn run(options: RunOptions) -> Result<RunResult, DatasetError> {
                             let failure = build_failure(case, expected_ids, &ids, comparison, None);
                             (ids, failure)
                         }
-                        Err(message) => (
-                            Vec::new(),
-                            build_failure(
-                                case,
-                                expected_ids,
-                                &[],
-                                Comparison::default(),
-                                Some(message),
-                            ),
-                        ),
+                        Err(message) => {
+                            let comparison =
+                                compare::compare(&case.query, &collection, expected_ids, &[]);
+                            (
+                                Vec::new(),
+                                build_failure(case, expected_ids, &[], comparison, Some(message)),
+                            )
+                        }
                     },
                     Err(error) => {
                         let comparison =
@@ -138,7 +136,6 @@ pub fn run(options: RunOptions) -> Result<RunResult, DatasetError> {
             missing,
             extra,
             rank_swaps,
-            unstable: 0,
         });
     }
 
@@ -146,9 +143,6 @@ pub fn run(options: RunOptions) -> Result<RunResult, DatasetError> {
         outcome.unstable = outcome.actual_sets.len() > 1;
     }
     let unstable = outcomes.iter().filter(|outcome| outcome.unstable).count();
-    for run in &mut runs {
-        run.unstable = unstable;
-    }
 
     let mut failures: Vec<Failure> = Vec::new();
     for outcome in &outcomes {

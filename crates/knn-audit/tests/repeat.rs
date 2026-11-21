@@ -84,6 +84,37 @@ impl Engine for ErrorEngine {
     }
 }
 
+struct BadIdEngine;
+
+impl Engine for BadIdEngine {
+    fn name(&self) -> &'static str {
+        "bad-id"
+    }
+
+    fn version(&self) -> String {
+        "test".to_string()
+    }
+
+    fn prepare(&mut self, _collection: &CollectionView<'_>) -> Result<(), AdapterError> {
+        Ok(())
+    }
+
+    fn search(&self, _query: &[f32], _k: usize) -> Result<Vec<Hit>, AdapterError> {
+        Ok(vec![Hit {
+            id: "nope".to_string(),
+            distance: None,
+        }])
+    }
+
+    fn capabilities(&self) -> Caps {
+        Caps {
+            exact_mode: true,
+            distance_metric: Metric::SquaredL2,
+            supports_ids: true,
+        }
+    }
+}
+
 fn audit(answers: Vec<Vec<u64>>, repeat: usize) -> knn_audit::report::Report {
     let dataset = Dataset::load(MINI).expect("mini fixture");
     run(RunOptions {
@@ -114,10 +145,10 @@ fn independent_audits_report_any_all_and_unstable() {
     assert_eq!(report.summary.unstable, 1);
     assert_eq!(report.runs.len(), 3);
     assert!(
-        report.runs.iter().all(|item| item.failed == 1
-            && item.missing > 0
-            && item.extra > 0
-            && item.unstable == 1)
+        report
+            .runs
+            .iter()
+            .all(|item| item.failed == 1 && item.missing > 0 && item.extra > 0)
     );
     let failure = &report.failures[0];
     assert_eq!(failure.failed_repetitions, vec![1, 2, 3]);
@@ -208,5 +239,28 @@ fn adapter_error_counts_every_expected_id_as_missing() {
             .report
             .to_html()
             .contains("<th>run</th><th>failed</th><th>errors</th>")
+    );
+}
+
+#[test]
+fn non_numeric_id_counts_every_expected_id_as_missing() {
+    let dataset = Dataset::load(MINI).expect("mini fixture");
+    let result = run(RunOptions {
+        dataset,
+        engine: Box::new(BadIdEngine),
+        k: 10,
+        limit: Some(1),
+        repeat: 1,
+    })
+    .expect("run");
+    assert_eq!(result.report.summary.errors, 1);
+    assert_eq!(result.report.summary.missing, CORRECT.len());
+    assert_eq!(result.report.failures[0].missing_ids.len(), CORRECT.len());
+    assert!(
+        result.report.failures[0]
+            .error
+            .as_deref()
+            .expect("error")
+            .contains("non-numeric id")
     );
 }
