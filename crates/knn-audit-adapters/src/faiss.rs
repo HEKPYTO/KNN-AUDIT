@@ -64,6 +64,7 @@ pub struct FaissEngine {
 
 impl FaissEngine {
     pub fn new(python: impl AsRef<OsStr>) -> Result<Self, AdapterError> {
+        let interpreter = python.as_ref().to_string_lossy().into_owned();
         let mut child = Command::new(python)
             .arg("-c")
             .arg(include_str!("../scripts/faiss_worker.py"))
@@ -72,7 +73,9 @@ impl FaissEngine {
             .stderr(Stdio::inherit())
             .spawn()
             .map_err(|error| {
-                AdapterError::new(format!("faiss interpreter failed to start: {error}"))
+                AdapterError::new(format!(
+                    "faiss interpreter {interpreter} failed to start: {error}"
+                ))
             })?;
         let stdin = child.stdin.take().expect("piped faiss stdin");
         let stdout = child.stdout.take().expect("piped faiss stdout");

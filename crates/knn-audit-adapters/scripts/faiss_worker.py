@@ -1,7 +1,6 @@
 import json
 import sys
 
-INSTALL = "uv pip install --python .venv-faiss/bin/python 'faiss-cpu==1.12.0'"
 
 try:
     import faiss
@@ -11,7 +10,10 @@ try:
 except ImportError as exc:
     faiss = None
     np = None
-    IMPORT_ERROR = f"faiss is not installed: {exc}; install with: {INSTALL}"
+    IMPORT_ERROR = (
+        f"faiss is not installed: {exc}; install with: "
+        f"{sys.executable} -m pip install 'faiss-cpu==1.12.0'"
+    )
 
 state = {"index": None, "ids": []}
 
@@ -64,13 +66,18 @@ def handle(request):
             raise ValueError(f"query must have {index.d} values")
         if not isinstance(k, int) or isinstance(k, bool) or k <= 0:
             raise ValueError("k must be a positive integer")
+        k_eff = min(k, index.ntotal)
+        if k_eff == 0:
+            return [], False
         array = np.asarray(query, dtype=np.float32).reshape(1, index.d)
-        distances, labels = index.search(array, k)
+        distances, labels = index.search(array, k_eff)
         ids = state["ids"]
         hits = []
         for label, distance in zip(labels[0], distances[0]):
             position = int(label)
-            if position < 0 or position >= len(ids):
+            if position < 0:
+                raise ValueError(f"f32 squared-L2 overflow: faiss returned label {position}")
+            if position >= len(ids):
                 raise ValueError(f"faiss returned unknown index {position}")
             hits.append({"id": ids[position], "distance": float(distance)})
         return hits, False

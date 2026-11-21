@@ -227,7 +227,7 @@ fn build_engine(
             .map_err(|error| format!("qdrant prepare failed: {error}")),
         "pgvector" => PgVectorEngine::new(database_url, collection)
             .map(|engine| Box::new(engine) as Box<dyn Engine + Send + Sync>)
-            .map_err(|error| format!("pgvector prepare failed: {error}")),
+            .map_err(|error| format!("pgvector connection failed: {error}")),
         "faiss" => FaissEngine::new(faiss_python)
             .map(|engine| Box::new(engine) as Box<dyn Engine + Send + Sync>)
             .map_err(|error| format!("faiss prepare failed: {error}")),
