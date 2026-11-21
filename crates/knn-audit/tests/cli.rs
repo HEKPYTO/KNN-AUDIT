@@ -246,6 +246,25 @@ fn zero_repeat_is_a_usage_error() {
 }
 
 #[test]
+fn zero_limit_is_a_usage_error() {
+    let output = command()
+        .args([
+            "run",
+            "--dataset",
+            MINI,
+            "--engine",
+            "reference",
+            "--limit",
+            "0",
+        ])
+        .output()
+        .expect("limit validation");
+    assert_eq!(output.status.code(), Some(2));
+    let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
+    assert!(stderr.contains("--limit must be positive"));
+}
+
+#[test]
 fn repeat_summary_line_reports_any_and_every_run() {
     let temp = tempfile::tempdir().expect("temp output");
     let out = temp.path().join("repeat.json");
@@ -265,7 +284,10 @@ fn repeat_summary_line_reports_any_and_every_run() {
         .expect("repeat audit");
     assert_eq!(output.status.code(), Some(0));
     let stdout = String::from_utf8(output.stdout).expect("utf8 stdout");
-    assert!(stdout.contains("reference 0.1.0 (repeat 2): 0/8 cases blocked"));
+    assert!(stdout.contains(&format!(
+        "reference {} (repeat 2): 0/8 cases blocked",
+        env!("CARGO_PKG_VERSION")
+    )));
     assert!(stdout.contains(
         "0 in every run, 0 order-only, 0 unstable; 0 errors; 0 missing, 0 extra, 0 rank swaps"
     ));
@@ -323,6 +345,25 @@ fn qdrant_dispatch_reports_adapter_error() {
 }
 
 #[test]
+fn qdrant_constructor_error_uses_engine_label() {
+    let output = command()
+        .args([
+            "run",
+            "--dataset",
+            MINI,
+            "--engine",
+            "qdrant",
+            "--collection",
+            "bad-name",
+        ])
+        .output()
+        .expect("invalid collection");
+    assert_eq!(output.status.code(), Some(2));
+    let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
+    assert!(stderr.contains("qdrant engine failed"));
+}
+
+#[test]
 fn pgvector_dispatch_reports_adapter_error() {
     let output = command()
         .args([
@@ -340,7 +381,7 @@ fn pgvector_dispatch_reports_adapter_error() {
         .expect("pgvector dispatch");
     assert_eq!(output.status.code(), Some(2));
     let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
-    assert!(stderr.contains("pgvector connection failed"));
+    assert!(stderr.contains("pgvector engine failed"));
 }
 
 #[test]
@@ -412,7 +453,7 @@ const SECRET_ROOT: &str = "/private/tmp/errpedia-secret-dataset";
 fn publish_report() -> Value {
     serde_json::json!({
         "schema": "knn-audit/v1",
-        "tool": {"name": "knn-audit", "version": "0.1.0"},
+        "tool": {"name": "knn-audit", "version": env!("CARGO_PKG_VERSION")},
         "created_at": "2026-11-21T00:00:00Z",
         "dataset": {
             "root": SECRET_ROOT,
@@ -423,7 +464,7 @@ fn publish_report() -> Value {
         },
         "engine": {
             "name": "reference",
-            "version": "0.1.0",
+            "version": env!("CARGO_PKG_VERSION"),
             "exact_mode": true,
             "metric": "squared_l2",
             "config": {
@@ -520,7 +561,7 @@ fn publish_writes_redacted_deterministic_scorecard() {
     let scorecard: Value = serde_json::from_str(&first_text).expect("scorecard json");
     assert_eq!(scorecard["schema"], "knn-audit-scorecard/v1");
     assert_eq!(scorecard["tool"]["name"], "knn-audit");
-    assert_eq!(scorecard["tool"]["version"], "0.1.0");
+    assert_eq!(scorecard["tool"]["version"], env!("CARGO_PKG_VERSION"));
     assert_eq!(scorecard["dataset"]["base_sha256"], "abc123");
     assert_eq!(scorecard["dataset"]["base_rows"], 32);
     assert_eq!(scorecard["dataset"]["cases"], 3);
@@ -788,7 +829,7 @@ fn engine_config_flows_from_run_to_published_scorecard() {
     let scorecard: Value = serde_json::from_str(&text).expect("scorecard json");
     assert_eq!(scorecard["engine"]["config"], expected);
     assert_eq!(scorecard["tool"]["name"], "knn-audit");
-    assert_eq!(scorecard["tool"]["version"], "0.1.0");
+    assert_eq!(scorecard["tool"]["version"], env!("CARGO_PKG_VERSION"));
     assert_eq!(scorecard["summary"]["order_only"], 0);
     let mut keys = Vec::new();
     let mut strings = Vec::new();

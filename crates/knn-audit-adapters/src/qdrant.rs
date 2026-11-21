@@ -35,7 +35,9 @@ impl QdrantEngine {
         let client = Client::builder()
             .timeout(Duration::from_secs(300))
             .build()
-            .map_err(|error| AdapterError::new(format!("Qdrant client failed: {error}")))?;
+            .map_err(|error| {
+                AdapterError::new(format!("Qdrant client failed: {}", error.without_url()))
+            })?;
         Ok(Self {
             client,
             base_url: url.into().trim_end_matches('/').to_string(),
@@ -53,9 +55,7 @@ impl QdrantEngine {
         if let Some(status) = payload.get("status")
             && status != "ok"
         {
-            let message = status
-                .get("error")
-                .map_or_else(|| status.to_string(), Value::to_string);
+            let message = status.get("error").unwrap_or(status).to_string();
             return Err(AdapterError::new(format!("qdrant status error: {message}")));
         }
         Ok(())
@@ -78,16 +78,19 @@ impl QdrantEngine {
         if let Some(body) = body {
             request = request.json(&body);
         }
-        let response = request
-            .send()
-            .map_err(|error| AdapterError::new(format!("qdrant request failed: {error}")))?;
+        let response = request.send().map_err(|error| {
+            AdapterError::new(format!("qdrant request failed: {}", error.without_url()))
+        })?;
         let status = response.status();
         if allow_missing && status == StatusCode::NOT_FOUND {
             return Ok(Value::Null);
         }
-        let payload: Value = response
-            .json()
-            .map_err(|error| AdapterError::new(format!("qdrant response is not JSON: {error}")))?;
+        let payload: Value = response.json().map_err(|error| {
+            AdapterError::new(format!(
+                "qdrant response is not JSON: {}",
+                error.without_url()
+            ))
+        })?;
         if !status.is_success() {
             return Err(AdapterError::new(format!(
                 "qdrant HTTP {status}: {payload}"
@@ -97,10 +100,18 @@ impl QdrantEngine {
         Ok(payload)
     }
 
-    pub fn cleanup(&self) -> Result<(), AdapterError> {
+    pub fn cleanup(&mut self) -> Result<(), AdapterError> {
         self.send_allow_missing(Method::DELETE, &self.collection_path(), None, true)?;
+        self.dim = None;
+        self.version = None;
         Ok(())
     }
+}
+
+fn hnsw_is_flat(info: &Value) -> bool {
+    info.pointer("/result/config/hnsw_config/m")
+        .and_then(Value::as_u64)
+        == Some(0)
 }
 
 impl Engine for QdrantEngine {
@@ -124,6 +135,8 @@ impl Engine for QdrantEngine {
 
     fn prepare(&mut self, collection: &CollectionView<'_>) -> Result<(), AdapterError> {
         validate_collection(collection)?;
+        self.dim = None;
+        self.version = None;
         self.cleanup()?;
         self.send(
             Method::PUT,
@@ -143,22 +156,18 @@ impl Engine for QdrantEngine {
             })),
         )?;
         let info = self.send(Method::GET, &self.collection_path(), None)?;
-        let m = info
-            .pointer("/result/config/hnsw_config/m")
-            .and_then(Value::as_u64);
-        if m != Some(0) {
+        if !hnsw_is_flat(&info) {
             return Err(AdapterError::new(format!(
-                "qdrant config mismatch: hnsw m={m:?}"
+                "qdrant config mismatch: hnsw m={:?}",
+                info.pointer("/result/config/hnsw_config/m")
             )));
         }
-        let root = self.send(Method::GET, "/", None)?;
-        self.version = Some(
-            root.get("version")
-                .and_then(Value::as_str)
-                .map(str::to_string)
-                .ok_or_else(|| AdapterError::new("qdrant response has no version"))?,
-        );
-        self.dim = Some(collection.dim);
+        let version = self
+            .send(Method::GET, "/", None)?
+            .get("version")
+            .and_then(Value::as_str)
+            .map(str::to_string)
+            .ok_or_else(|| AdapterError::new("qdrant response has no version"))?;
 
         for (start, chunk) in batches(collection.ids) {
             let points: Vec<Point> = chunk
@@ -185,7 +194,10 @@ impl Engine for QdrantEngine {
             .pointer("/result/count")
             .and_then(Value::as_u64)
             .ok_or_else(|| AdapterError::new("qdrant count response has no count"))?;
-        verify_count(count, collection.ids.len())
+        verify_count(count, collection.ids.len())?;
+        self.version = Some(version);
+        self.dim = Some(collection.dim);
+        Ok(())
     }
 
     fn search(&self, query: &[f32], k: usize) -> Result<Vec<Hit>, AdapterError> {
@@ -239,5 +251,22 @@ impl Engine for QdrantEngine {
             exact_mode: true,
             distance_metric: Metric::L2,
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::hnsw_is_flat;
+    use serde_json::json;
+
+    #[test]
+    fn hnsw_is_flat_checks_the_server_reported_m() {
+        assert!(hnsw_is_flat(
+            &json!({"result": {"config": {"hnsw_config": {"m": 0}}}})
+        ));
+        assert!(!hnsw_is_flat(
+            &json!({"result": {"config": {"hnsw_config": {"m": 16}}}})
+        ));
+        assert!(!hnsw_is_flat(&json!({"result": {"config": {}}})));
     }
 }

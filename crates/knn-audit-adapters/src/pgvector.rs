@@ -97,12 +97,6 @@ impl PgVectorEngine {
         client: &mut Client,
         collection: &CollectionView<'_>,
     ) -> Result<(), AdapterError> {
-        if let Some(&id) = collection.ids.iter().find(|&&id| id > i64::MAX as u64) {
-            return Err(AdapterError::new(format!(
-                "id {} exceeds i64::MAX and cannot be stored in pgvector",
-                id_string(id)
-            )));
-        }
         let mut rows = String::new();
         for (index, id) in collection.ids.iter().enumerate() {
             writeln!(
@@ -123,13 +117,19 @@ impl PgVectorEngine {
         Ok(())
     }
 
-    pub fn cleanup(&self) -> Result<(), AdapterError> {
+    pub fn cleanup(&mut self) -> Result<(), AdapterError> {
+        self.dim = None;
+        self.version = None;
         let mut client = self.connection()?;
         client
             .execute(&format!("DROP TABLE IF EXISTS {}", self.table), &[])
             .map_err(|error| AdapterError::new(format!("DROP TABLE failed: {error}")))?;
         Ok(())
     }
+}
+
+fn first_oversized_id(ids: &[u64]) -> Option<u64> {
+    ids.iter().copied().find(|&id| id > i64::MAX as u64)
 }
 
 fn plan_is_sequential(plan: &[String]) -> bool {
@@ -159,6 +159,12 @@ impl Engine for PgVectorEngine {
 
     fn prepare(&mut self, collection: &CollectionView<'_>) -> Result<(), AdapterError> {
         validate_collection(collection)?;
+        if let Some(id) = first_oversized_id(collection.ids) {
+            return Err(AdapterError::new(format!(
+                "id {} exceeds i64::MAX and cannot be stored in pgvector",
+                id_string(id)
+            )));
+        }
         let mut client = self.connection()?;
         client
             .batch_execute("CREATE EXTENSION IF NOT EXISTS vector")
@@ -170,6 +176,10 @@ impl Engine for PgVectorEngine {
             )
             .map_err(|error| AdapterError::new(format!("pgvector version failed: {error}")))?
             .get(0);
+        drop(client);
+        self.dim = None;
+        self.version = None;
+        let mut client = self.connection()?;
         client
             .execute(&format!("DROP TABLE IF EXISTS {}", self.table), &[])
             .map_err(|error| AdapterError::new(format!("DROP TABLE failed: {error}")))?;
@@ -260,7 +270,7 @@ impl Engine for PgVectorEngine {
 
 #[cfg(test)]
 mod tests {
-    use super::plan_is_sequential;
+    use super::{first_oversized_id, plan_is_sequential};
 
     #[test]
     fn plan_is_sequential_rejects_index_scan() {
@@ -270,5 +280,14 @@ mod tests {
         ];
         assert!(!plan_is_sequential(&plan));
         assert!(plan_is_sequential(&["Seq Scan on audit".to_string()]));
+    }
+
+    #[test]
+    fn first_oversized_id_detects_values_beyond_i64() {
+        assert_eq!(first_oversized_id(&[0, i64::MAX as u64]), None);
+        assert_eq!(
+            first_oversized_id(&[1, i64::MAX as u64 + 1]),
+            Some(i64::MAX as u64 + 1)
+        );
     }
 }

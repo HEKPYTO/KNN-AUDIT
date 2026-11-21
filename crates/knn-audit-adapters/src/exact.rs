@@ -1,4 +1,4 @@
-use crate::CollectionView;
+use crate::{AdapterError, CollectionView};
 use num_bigint::BigInt;
 use num_traits::Zero;
 use rayon::prelude::*;
@@ -129,19 +129,32 @@ pub fn squared_l2_exact(query: &[f32], vector: &[f32]) -> ExactDistance {
     }
 }
 
-pub fn top_k_exact(query: &[f32], collection: &CollectionView<'_>, k: usize) -> Vec<u64> {
+pub fn top_k_exact(
+    query: &[f32],
+    collection: &CollectionView<'_>,
+    k: usize,
+) -> Result<Vec<u64>, AdapterError> {
     if collection.dim == 0 {
-        return Vec::new();
+        return Ok(Vec::new());
     }
-    assert_eq!(query.len(), collection.dim, "query dimension mismatch");
-    assert_eq!(
-        collection.vectors.len(),
-        collection.ids.len() * collection.dim,
-        "collection size mismatch"
-    );
+    if query.len() != collection.dim {
+        return Err(AdapterError::new(format!(
+            "query dimension {} does not match collection dimension {}",
+            query.len(),
+            collection.dim
+        )));
+    }
+    if collection.vectors.len() != collection.ids.len() * collection.dim {
+        return Err(AdapterError::new(format!(
+            "collection size mismatch: {} values for {} vectors of dimension {}",
+            collection.vectors.len(),
+            collection.ids.len(),
+            collection.dim
+        )));
+    }
     let count = collection.ids.len();
     if count == 0 || k == 0 {
-        return Vec::new();
+        return Ok(Vec::new());
     }
     let distances: Vec<f64> = collection
         .vectors
@@ -174,7 +187,7 @@ pub fn top_k_exact(query: &[f32], collection: &CollectionView<'_>, k: usize) -> 
     }
     candidates.sort_by(|left, right| left.1.cmp(&right.1).then_with(|| left.0.cmp(&right.0)));
     candidates.truncate(k.min(count));
-    candidates.into_iter().map(|(id, _)| id).collect()
+    Ok(candidates.into_iter().map(|(id, _)| id).collect())
 }
 
 #[cfg(test)]

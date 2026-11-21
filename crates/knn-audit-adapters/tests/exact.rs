@@ -54,9 +54,12 @@ fn top_k_uses_exact_order_then_smaller_id() {
         ids: &ids,
         vectors: &vectors,
     };
-    assert_eq!(top_k_exact(&[0.1], &collection, 3), vec![10, 11, 12]);
     assert_eq!(
-        top_k_exact(&[0.0], &collection, 10),
+        top_k_exact(&[0.1], &collection, 3).expect("top k"),
+        vec![10, 11, 12]
+    );
+    assert_eq!(
+        top_k_exact(&[0.0], &collection, 10).expect("top k"),
         vec![10, 11, 12, 13, 14]
     );
 }
@@ -70,8 +73,14 @@ fn top_k_splitting_a_tie_group_returns_smaller_ids() {
         ids: &ids,
         vectors: &vectors,
     };
-    assert_eq!(top_k_exact(&[1.0], &collection, 2), vec![1, 3]);
-    assert_eq!(top_k_exact(&[1.0], &collection, 3), vec![1, 3, 5]);
+    assert_eq!(
+        top_k_exact(&[1.0], &collection, 2).expect("top k"),
+        vec![1, 3]
+    );
+    assert_eq!(
+        top_k_exact(&[1.0], &collection, 3).expect("top k"),
+        vec![1, 3, 5]
+    );
 }
 
 #[test]
@@ -81,5 +90,31 @@ fn top_k_with_zero_dimension_returns_empty() {
         ids: &[1],
         vectors: &[],
     };
-    assert!(top_k_exact(&[], &collection, 5).is_empty());
+    assert!(top_k_exact(&[], &collection, 5).expect("empty").is_empty());
+}
+
+#[test]
+fn top_k_reports_query_and_collection_shape_errors() {
+    let query_error = top_k_exact(
+        &[0.0],
+        &CollectionView {
+            dim: 2,
+            ids: &[1],
+            vectors: &[0.0, 0.0],
+        },
+        1,
+    )
+    .expect_err("query dimension mismatch");
+    assert!(query_error.message.contains("query dimension"));
+    let shape_error = top_k_exact(
+        &[0.0, 0.0],
+        &CollectionView {
+            dim: 2,
+            ids: &[1, 2],
+            vectors: &[0.0, 0.0, 1.0],
+        },
+        1,
+    )
+    .expect_err("shape mismatch");
+    assert!(shape_error.message.contains("collection size mismatch"));
 }

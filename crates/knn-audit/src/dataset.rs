@@ -3,6 +3,7 @@ use knn_audit_adapters::exact::top_k_exact;
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
 use std::fmt;
+use std::fmt::Write as _;
 use std::fs;
 use std::path::{Path, PathBuf};
 
@@ -99,9 +100,6 @@ impl Dataset {
             }
             if row == 0 {
                 dim = columns;
-                if dim == 0 {
-                    return Err(DatasetError::new("base.csv is empty"));
-                }
             } else if columns != dim {
                 return Err(DatasetError::new(format!(
                     "base.csv row {row} has {columns} columns, expected {dim}"
@@ -194,10 +192,6 @@ impl Dataset {
         }
     }
 
-    pub fn check_checksum(&self, expected: &str) -> Result<(), DatasetError> {
-        check_digest(&self.base_sha256, expected)
-    }
-
     pub fn expected_ids(&self, case: &Case, k: usize) -> Result<Vec<u64>, DatasetError> {
         if k == 0 {
             return Err(DatasetError::new("k must be positive"));
@@ -223,7 +217,8 @@ impl Dataset {
                 ))
             })?;
             let mut expected = self.expected_ids(case, k)?;
-            let mut actual = top_k_exact(&case.query, &collection, k);
+            let mut actual = top_k_exact(&case.query, &collection, k)
+                .map_err(|error| DatasetError::new(error.message))?;
             expected.sort_unstable();
             actual.sort_unstable();
             if expected != actual {
@@ -247,10 +242,12 @@ fn check_digest(computed: &str, expected: &str) -> Result<(), DatasetError> {
     }
 }
 fn digest_hex(bytes: &[u8]) -> String {
-    Sha256::digest(bytes)
-        .iter()
-        .map(|byte| format!("{byte:02x}"))
-        .collect()
+    let digest = Sha256::digest(bytes);
+    let mut text = String::with_capacity(digest.len() * 2);
+    for byte in digest.iter() {
+        write!(&mut text, "{byte:02x}").expect("write to string");
+    }
+    text
 }
 
 fn collect_json(dir: &Path, paths: &mut Vec<PathBuf>) -> Result<(), DatasetError> {
@@ -260,12 +257,22 @@ fn collect_json(dir: &Path, paths: &mut Vec<PathBuf>) -> Result<(), DatasetError
         let entry = entry.map_err(|error| {
             DatasetError::new(format!("cannot enumerate {}: {error}", dir.display()))
         })?;
+        let file_type = entry.file_type().map_err(|error| {
+            DatasetError::new(format!(
+                "cannot inspect {}: {error}",
+                entry.path().display()
+            ))
+        })?;
+        if file_type.is_symlink() {
+            continue;
+        }
         let path = entry.path();
-        if path.is_dir() {
+        if file_type.is_dir() {
             collect_json(&path, paths)?;
-        } else if path
-            .extension()
-            .is_some_and(|extension| extension == "json")
+        } else if file_type.is_file()
+            && path
+                .extension()
+                .is_some_and(|extension| extension == "json")
         {
             paths.push(path);
         }

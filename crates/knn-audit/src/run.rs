@@ -67,6 +67,9 @@ pub fn run(options: RunOptions) -> Result<RunResult, DatasetError> {
     if options.repeat == 0 {
         return Err(DatasetError::new("repeat must be positive"));
     }
+    if options.limit == Some(0) {
+        return Err(DatasetError::new("--limit must be positive"));
+    }
     let selected = select(&options.dataset, options.limit, options.k)?;
     let collection = options.dataset.collection();
     let pool = build_pool(options.jobs)?;
