@@ -1,12 +1,13 @@
-use crate::{AdapterError, Caps, CollectionView, Engine, Hit, Metric};
+use crate::{
+    AdapterError, Caps, CollectionView, Engine, Hit, Metric, batches, id_string, valid_name,
+    validate_collection, verify_count,
+};
 use reqwest::blocking::Client;
 use reqwest::{Method, StatusCode};
 use serde::Serialize;
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
 use std::time::Duration;
-
-const BATCH_SIZE: usize = 1000;
 
 #[derive(Serialize)]
 struct Point {
@@ -61,6 +62,16 @@ impl QdrantEngine {
     }
 
     fn send(&self, method: Method, path: &str, body: Option<Value>) -> Result<Value, AdapterError> {
+        self.send_allow_missing(method, path, body, false)
+    }
+
+    fn send_allow_missing(
+        &self,
+        method: Method,
+        path: &str,
+        body: Option<Value>,
+        allow_missing: bool,
+    ) -> Result<Value, AdapterError> {
         let mut request = self
             .client
             .request(method, format!("{}{path}", self.base_url));
@@ -71,6 +82,9 @@ impl QdrantEngine {
             .send()
             .map_err(|error| AdapterError::new(format!("qdrant request failed: {error}")))?;
         let status = response.status();
+        if allow_missing && status == StatusCode::NOT_FOUND {
+            return Ok(Value::Null);
+        }
         let payload: Value = response
             .json()
             .map_err(|error| AdapterError::new(format!("qdrant response is not JSON: {error}")))?;
@@ -83,34 +97,10 @@ impl QdrantEngine {
         Ok(payload)
     }
 
-    fn delete_collection(&self) -> Result<(), AdapterError> {
-        let response = self
-            .client
-            .delete(format!("{}{}", self.base_url, self.collection_path()))
-            .send()
-            .map_err(|error| AdapterError::new(format!("qdrant request failed: {error}")))?;
-        let status = response.status();
-        if status == StatusCode::NOT_FOUND {
-            return Ok(());
-        }
-        let payload: Value = response
-            .json()
-            .map_err(|error| AdapterError::new(format!("qdrant response is not JSON: {error}")))?;
-        if !status.is_success() {
-            return Err(AdapterError::new(format!(
-                "qdrant delete failed: {payload}"
-            )));
-        }
-        Self::check_status(&payload)
+    pub fn cleanup(&self) -> Result<(), AdapterError> {
+        self.send_allow_missing(Method::DELETE, &self.collection_path(), None, true)?;
+        Ok(())
     }
-}
-
-fn valid_name(name: &str) -> bool {
-    !name.is_empty()
-        && name.len() <= 255
-        && name
-            .chars()
-            .all(|c| c.is_ascii_alphanumeric() || c == '_' || c == '-')
 }
 
 impl Engine for QdrantEngine {
@@ -129,22 +119,12 @@ impl Engine for QdrantEngine {
             ("hnsw_m".to_string(), "0".to_string()),
             ("indexing_threshold".to_string(), "0".to_string()),
             ("default_segment_number".to_string(), "1".to_string()),
-            ("indexed_vectors_count".to_string(), "0".to_string()),
         ])
     }
 
     fn prepare(&mut self, collection: &CollectionView<'_>) -> Result<(), AdapterError> {
-        if collection.dim == 0 || collection.vectors.len() != collection.ids.len() * collection.dim
-        {
-            return Err(AdapterError::new(format!(
-                "count mismatch: collection has {} values, expected {} for {} vectors of dimension {}",
-                collection.vectors.len(),
-                collection.ids.len() * collection.dim,
-                collection.ids.len(),
-                collection.dim
-            )));
-        }
-        self.delete_collection()?;
+        validate_collection(collection)?;
+        self.cleanup()?;
         self.send(
             Method::PUT,
             &self.collection_path(),
@@ -166,12 +146,9 @@ impl Engine for QdrantEngine {
         let m = info
             .pointer("/result/config/hnsw_config/m")
             .and_then(Value::as_u64);
-        let indexed = info
-            .pointer("/result/indexed_vectors_count")
-            .and_then(Value::as_u64);
-        if m != Some(0) || indexed != Some(0) {
+        if m != Some(0) {
             return Err(AdapterError::new(format!(
-                "qdrant config mismatch: hnsw m={m:?}, indexed vectors={indexed:?}"
+                "qdrant config mismatch: hnsw m={m:?}"
             )));
         }
         let root = self.send(Method::GET, "/", None)?;
@@ -183,13 +160,13 @@ impl Engine for QdrantEngine {
         );
         self.dim = Some(collection.dim);
 
-        for (batch, chunk) in collection.ids.chunks(BATCH_SIZE).enumerate() {
+        for (start, chunk) in batches(collection.ids) {
             let points: Vec<Point> = chunk
                 .iter()
                 .enumerate()
                 .map(|(offset, id)| Point {
                     id: *id,
-                    vector: collection.vector(batch * BATCH_SIZE + offset).to_vec(),
+                    vector: collection.vector(start + offset).to_vec(),
                 })
                 .collect();
             self.send(
@@ -208,13 +185,7 @@ impl Engine for QdrantEngine {
             .pointer("/result/count")
             .and_then(Value::as_u64)
             .ok_or_else(|| AdapterError::new("qdrant count response has no count"))?;
-        if count as usize != collection.ids.len() {
-            return Err(AdapterError::new(format!(
-                "count mismatch: engine reports {count}, collection has {}",
-                collection.ids.len()
-            )));
-        }
-        Ok(())
+        verify_count(count, collection.ids.len())
     }
 
     fn search(&self, query: &[f32], k: usize) -> Result<Vec<Hit>, AdapterError> {
@@ -256,7 +227,7 @@ impl Engine for QdrantEngine {
                     .and_then(Value::as_f64)
                     .ok_or_else(|| AdapterError::new("qdrant point has no score"))?;
                 Ok(Hit {
-                    id: id.to_string(),
+                    id: id_string(id),
                     distance: Some(distance),
                 })
             })
@@ -267,13 +238,6 @@ impl Engine for QdrantEngine {
         Caps {
             exact_mode: true,
             distance_metric: Metric::L2,
-            supports_ids: true,
         }
-    }
-
-    fn reset(&mut self) -> Result<(), AdapterError> {
-        self.delete_collection()?;
-        self.dim = None;
-        Ok(())
     }
 }

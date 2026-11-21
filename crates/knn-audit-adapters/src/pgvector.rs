@@ -1,4 +1,7 @@
-use crate::{AdapterError, Caps, CollectionView, Engine, Hit, Metric};
+use crate::{
+    AdapterError, Caps, CollectionView, Engine, Hit, Metric, id_string, valid_name,
+    validate_collection, vector_text, verify_count,
+};
 use bytes::BytesMut;
 use postgres::types::{Format, IsNull, ToSql, Type};
 use postgres::{Client, Config, NoTls};
@@ -94,16 +97,21 @@ impl PgVectorEngine {
         client: &mut Client,
         collection: &CollectionView<'_>,
     ) -> Result<(), AdapterError> {
+        if let Some(&id) = collection.ids.iter().find(|&&id| id > i64::MAX as u64) {
+            return Err(AdapterError::new(format!(
+                "id {} exceeds i64::MAX and cannot be stored in pgvector",
+                id_string(id)
+            )));
+        }
         let mut rows = String::new();
         for (index, id) in collection.ids.iter().enumerate() {
-            write!(rows, "{id}\t[").expect("write to string");
-            for (position, value) in collection.vector(index).iter().enumerate() {
-                if position > 0 {
-                    rows.push(',');
-                }
-                write!(rows, "{value}").expect("write to string");
-            }
-            rows.push_str("]\n");
+            writeln!(
+                rows,
+                "{}\t{}",
+                id_string(*id),
+                vector_text(collection.vector(index))
+            )
+            .expect("write to string");
         }
         let mut copy = client
             .copy_in(&format!("COPY {} (id, embedding) FROM STDIN", self.table))
@@ -114,27 +122,21 @@ impl PgVectorEngine {
             .map_err(|error| AdapterError::new(format!("postgres COPY finish failed: {error}")))?;
         Ok(())
     }
-}
 
-fn valid_name(name: &str) -> bool {
-    let mut chars = name.chars();
-    chars
-        .next()
-        .is_some_and(|first| first.is_ascii_alphabetic() || first == '_')
-        && chars.all(|c| c.is_ascii_alphanumeric() || c == '_')
-        && name.len() <= 63
-}
-
-fn vector_literal(values: &[f32]) -> VectorLiteral {
-    let mut literal = String::from("[");
-    for (index, value) in values.iter().enumerate() {
-        if index > 0 {
-            literal.push(',');
-        }
-        write!(literal, "{value}").expect("write to string");
+    pub fn cleanup(&self) -> Result<(), AdapterError> {
+        let mut client = self.connection()?;
+        client
+            .execute(&format!("DROP TABLE IF EXISTS {}", self.table), &[])
+            .map_err(|error| AdapterError::new(format!("DROP TABLE failed: {error}")))?;
+        Ok(())
     }
-    literal.push(']');
-    VectorLiteral(literal)
+}
+
+fn plan_is_sequential(plan: &[String]) -> bool {
+    plan.iter().any(|line| line.contains("Seq Scan"))
+        && !plan
+            .iter()
+            .any(|line| line.contains("Index Scan") || line.contains("Bitmap"))
 }
 
 impl Engine for PgVectorEngine {
@@ -156,16 +158,7 @@ impl Engine for PgVectorEngine {
     }
 
     fn prepare(&mut self, collection: &CollectionView<'_>) -> Result<(), AdapterError> {
-        if collection.dim == 0 || collection.vectors.len() != collection.ids.len() * collection.dim
-        {
-            return Err(AdapterError::new(format!(
-                "count mismatch: collection has {} values, expected {} for {} vectors of dimension {}",
-                collection.vectors.len(),
-                collection.ids.len() * collection.dim,
-                collection.ids.len(),
-                collection.dim
-            )));
-        }
+        validate_collection(collection)?;
         let mut client = self.connection()?;
         client
             .batch_execute("CREATE EXTENSION IF NOT EXISTS vector")
@@ -197,13 +190,8 @@ impl Engine for PgVectorEngine {
             .query_one(&format!("SELECT count(*) FROM {}", self.table), &[])
             .map_err(|error| AdapterError::new(format!("count query failed: {error}")))?
             .get(0);
-        if count as usize != collection.ids.len() {
-            return Err(AdapterError::new(format!(
-                "count mismatch: engine reports {count}, collection has {}",
-                collection.ids.len()
-            )));
-        }
-        let probe = vector_literal(&vec![0.0; collection.dim]);
+        verify_count(count as u64, collection.ids.len())?;
+        let probe = VectorLiteral(vector_text(&vec![0.0; collection.dim]));
         let plan: Vec<String> = client
             .query(
                 &format!(
@@ -216,11 +204,7 @@ impl Engine for PgVectorEngine {
             .into_iter()
             .map(|row| row.get::<_, String>(0))
             .collect();
-        if !plan.iter().any(|line| line.contains("Seq Scan"))
-            || plan
-                .iter()
-                .any(|line| line.contains("Index Scan") || line.contains("Bitmap"))
-        {
+        if !plan_is_sequential(&plan) {
             return Err(AdapterError::new(format!(
                 "pgvector plan is not a sequential scan: {}",
                 plan.join("; ")
@@ -245,7 +229,7 @@ impl Engine for PgVectorEngine {
         if k == 0 {
             return Ok(Vec::new());
         }
-        let literal = vector_literal(query);
+        let literal = VectorLiteral(vector_text(query));
         let mut client = self.connection()?;
         let rows = client
             .query(
@@ -270,17 +254,21 @@ impl Engine for PgVectorEngine {
         Caps {
             exact_mode: true,
             distance_metric: Metric::L2,
-            supports_ids: true,
         }
     }
+}
 
-    fn reset(&mut self) -> Result<(), AdapterError> {
-        let mut client = self.connection()?;
-        client
-            .execute(&format!("DROP TABLE IF EXISTS {}", self.table), &[])
-            .map_err(|error| AdapterError::new(format!("DROP TABLE failed: {error}")))?;
-        drop(client);
-        self.dim = None;
-        Ok(())
+#[cfg(test)]
+mod tests {
+    use super::plan_is_sequential;
+
+    #[test]
+    fn plan_is_sequential_rejects_index_scan() {
+        let plan = vec![
+            "Limit".to_string(),
+            "Index Scan using audit_pkey on audit".to_string(),
+        ];
+        assert!(!plan_is_sequential(&plan));
+        assert!(plan_is_sequential(&["Seq Scan on audit".to_string()]));
     }
 }

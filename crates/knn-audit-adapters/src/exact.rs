@@ -4,6 +4,8 @@ use num_traits::Zero;
 use rayon::prelude::*;
 use std::cmp::Ordering;
 
+const SCREENING_FACTOR: f64 = 8.0;
+
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ExactDistance {
     pub value: BigInt,
@@ -16,17 +18,6 @@ impl ExactDistance {
             value: BigInt::zero(),
             exponent: 0,
         }
-    }
-
-    pub fn bounds_f64(&self) -> (f64, f64) {
-        if self.value.is_zero() {
-            return (0.0, 0.0);
-        }
-        let bits = self.value.bits() as i32;
-        (
-            pow2(bits - 1 + 2 * self.exponent),
-            pow2(bits + 2 * self.exponent),
-        )
     }
 
     pub fn cmp_f64(&self, other: f64) -> Ordering {
@@ -74,16 +65,6 @@ impl PartialOrd for ExactDistance {
     }
 }
 
-fn pow2(exponent: i32) -> f64 {
-    if exponent < -1022 {
-        0.0
-    } else if exponent > 1023 {
-        f64::INFINITY
-    } else {
-        f64::from_bits(((exponent + 1023) as u64) << 52)
-    }
-}
-
 fn decode(value: f32) -> (i64, i32) {
     let bits = value.to_bits();
     let sign = if bits >> 31 == 0 { 1 } else { -1 };
@@ -99,6 +80,10 @@ fn decode(value: f32) -> (i64, i32) {
 fn gamma(operations: usize) -> f64 {
     let bound = (operations as f64) * (f64::EPSILON / 2.0);
     bound / (1.0 - bound)
+}
+
+fn screening_relative(dim: usize) -> f64 {
+    SCREENING_FACTOR * gamma(4 * dim)
 }
 
 pub fn squared_l2_f64(query: &[f32], vector: &[f32]) -> f64 {
@@ -125,7 +110,7 @@ pub fn distance_interval(computed: f64, dim: usize) -> (f64, f64) {
     if computed == 0.0 {
         return (0.0, 0.0);
     }
-    let relative = 4.0 * gamma(4 * dim);
+    let relative = screening_relative(dim);
     (computed * (1.0 - relative), computed * (1.0 + relative))
 }
 
@@ -153,6 +138,9 @@ pub fn squared_l2_exact(query: &[f32], vector: &[f32]) -> ExactDistance {
 }
 
 pub fn top_k_exact(query: &[f32], collection: &CollectionView<'_>, k: usize) -> Vec<u64> {
+    if collection.dim == 0 {
+        return Vec::new();
+    }
     assert_eq!(query.len(), collection.dim, "query dimension mismatch");
     assert_eq!(
         collection.vectors.len(),
@@ -174,11 +162,10 @@ pub fn top_k_exact(query: &[f32], collection: &CollectionView<'_>, k: usize) -> 
         let (_, kth, _) = ordered.select_nth_unstable_by(rank, |left, right| left.total_cmp(right));
         *kth
     };
-    let relative = 8.0 * gamma(4 * collection.dim);
     let limit = if threshold == 0.0 {
         0.0
     } else {
-        threshold * (1.0 + relative)
+        threshold * (1.0 + screening_relative(collection.dim))
     };
     let mut candidates: Vec<(u64, ExactDistance)> = Vec::new();
     for index in 0..count {

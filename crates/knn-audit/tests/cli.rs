@@ -720,7 +720,7 @@ for line in sys.stdin:
             distance = sum((a - b) ** 2 for a, b in zip(query, vector))
             scored.append((distance, dataset_id))
         scored.sort()
-        response = [{"id": item[1], "distance": item[0]} for item in scored[:request["k"]]]
+        response = {"hits": [{"id": item[1], "distance": item[0]} for item in scored[:request["k"]]]}
     elif op == "reset":
         state["ids"] = []
         state["vectors"] = []
@@ -799,7 +799,6 @@ impl Engine for ProvenanceEngine {
         Caps {
             exact_mode: true,
             distance_metric: Metric::SquaredL2,
-            supports_ids: true,
         }
     }
 

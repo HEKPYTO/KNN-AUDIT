@@ -93,12 +93,6 @@ impl Engine for ReferenceEngine {
         Caps {
             exact_mode: true,
             distance_metric: Metric::SquaredL2,
-            supports_ids: true,
         }
-    }
-
-    fn reset(&mut self) -> Result<(), AdapterError> {
-        self.collection = None;
-        Ok(())
     }
 }
