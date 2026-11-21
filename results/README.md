@@ -30,12 +30,14 @@ correct id sets.
 ## Qdrant is a range, not a number
 
 Four committed groups of `--repeat 10` independent reloads were run from the
-same pins. Across the 40 reloads, blocking failures per reload were 543-603,
-missing ids 1,606-1,617, extra ids 1,527-1,538 and rank swaps 2,573-2,601.
-Each group blocked 928-929 distinct queries at least once, 200-204 in every
-reload; 851-852 changed id sets across reloads. A further 219 queries per group
-were order-only: the id set was correct in every reload and only ranks moved.
-They are not part of `failed`.
+same pins. Per-reload counts come from `runs[]`: blocking failures 543-603,
+missing ids 1,226-1,306, extra ids 1,147-1,227 and rank swaps 2,547-2,654.
+
+The `summary` counts are distinct cases across each 10-reload group: 928-929
+blocked, missing ids 1,606-1,617, extra ids 1,527-1,538 and rank swaps
+2,573-2,601. Of these, 200-204 were blocked in every reload, 851-852 changed id
+sets, and a further 219 per group were order-only (correct id set in every
+reload, ranks moved only); order-only cases are not part of `failed`.
 
 | Group | Blocked at least once | Blocked every reload | Order-only | Unstable |
 |---|---:|---:|---:|---:|
