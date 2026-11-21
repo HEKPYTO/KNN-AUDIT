@@ -166,6 +166,7 @@ fn unavailable_engine_lists_available_names() {
     assert!(stderr.contains("reference"));
     assert!(stderr.contains("qdrant"));
     assert!(stderr.contains("pgvector"));
+    assert!(stderr.contains("faiss"));
 }
 
 #[test]
@@ -387,4 +388,82 @@ fn real_reference_run_reports_clean() {
         .expect("reference run");
     assert_eq!(output.status.code(), Some(0), "{}", stdout(&output));
     assert!(stdout(&output).contains("0/1616 cases mismatch (0 missing, 0 extra, 0 rank swaps)"));
+}
+
+const FAKE_FAISS_WORKER: &str = r#"#!/usr/bin/env python3
+import json
+import sys
+
+state = {"dim": 0, "ids": [], "vectors": []}
+
+for line in sys.stdin:
+    request = json.loads(line)
+    op = request["op"]
+    if op == "version":
+        response = {"version": "fake-faiss-1"}
+    elif op == "create":
+        state["dim"] = request["dim"]
+        state["ids"] = []
+        state["vectors"] = []
+        response = {"ok": True}
+    elif op == "add":
+        state["ids"].extend(request["ids"])
+        state["vectors"].extend(request["vectors"])
+        response = {"ok": True}
+    elif op == "count":
+        response = {"count": len(state["ids"])}
+    elif op == "search":
+        dim = state["dim"]
+        query = request["query"]
+        scored = []
+        for index, dataset_id in enumerate(state["ids"]):
+            vector = state["vectors"][index * dim:(index + 1) * dim]
+            distance = sum((a - b) ** 2 for a, b in zip(query, vector))
+            scored.append((distance, dataset_id))
+        scored.sort()
+        response = [{"id": item[1], "distance": item[0]} for item in scored[:request["k"]]]
+    elif op == "reset":
+        state["ids"] = []
+        state["vectors"] = []
+        response = {"ok": True}
+    elif op == "close":
+        response = {"ok": True}
+    sys.stdout.write(json.dumps(response) + "\n")
+    sys.stdout.flush()
+    if op == "close":
+        break
+"#;
+
+#[test]
+fn faiss_dispatch_uses_python_protocol_worker() {
+    use std::os::unix::fs::PermissionsExt;
+
+    let temp = tempfile::tempdir().expect("temp output");
+    let worker = temp.path().join("fake_faiss.py");
+    fs::write(&worker, FAKE_FAISS_WORKER).expect("worker script");
+    fs::set_permissions(&worker, fs::Permissions::from_mode(0o755)).expect("worker permissions");
+    let out = temp.path().join("faiss.json");
+    let output = command()
+        .args([
+            "run",
+            "--dataset",
+            MINI,
+            "--engine",
+            "faiss",
+            "--faiss-python",
+            worker.to_str().expect("worker path"),
+            "--out",
+            out.to_str().expect("out path"),
+        ])
+        .output()
+        .expect("faiss run");
+    assert!(output.status.success(), "{}", stdout(&output));
+    let report: Value =
+        serde_json::from_slice(&fs::read(&out).expect("report json")).expect("parse report");
+    assert_eq!(report["engine"]["name"], "faiss");
+    assert_eq!(report["engine"]["version"], "fake-faiss-1");
+    assert_eq!(report["engine"]["metric"], "squared_l2");
+    assert_eq!(report["summary"]["cases"], 8);
+    assert_eq!(report["summary"]["failed"], 0);
+    assert_eq!(report["summary"]["errors"], 0);
 }
