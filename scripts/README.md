@@ -46,7 +46,9 @@ Verify and engine output is echoed before every assertion; jq diagnostics are
 left visible. Assertions cover report schema and shape, blocking-only
 `summary.failed`, non-blocking `summary.order_only`, and scorecard redaction:
 no `query`, `dataset.root` or `created_at`, and a present `tool.name` and
-`tool.version`.
+`tool.version`. Engine count assertions are smoke bands: CI is x86_64 while the
+committed scorecards are arm64, and exact counts can shift with floating-point
+rounding.
 
 Exit `0` means the audit completed and every assertion passed — not that the
 engines were exact. Findings do not fail the job; a drift, verification,
