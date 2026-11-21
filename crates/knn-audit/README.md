@@ -9,7 +9,6 @@ dataset's shipped ground truth. Canonical commands live in the
 | Module | Responsibility |
 |---|---|
 | `dataset` | Loads `data/base.csv` and collection files, validates shape and ids, checks the pinned sha256, recomputes sampled ground truth. |
-| `exact` | Re-exports the dyadic-rational kernel from `knn-audit-adapters`. |
 | `compare` | Classifies a query as `clean`, `order_only`, `mismatch` or `error` and records rank swaps and a diagnostic distance gap. |
 | `report` | Serializes `knn-audit/v1` reports and `knn-audit-scorecard/v1` scorecards, and renders escaped HTML. |
 | `run` | Prepares the engine, executes cases in parallel, and aggregates severity, stability and category counts. |
@@ -19,9 +18,9 @@ dataset's shipped ground truth. Canonical commands live in the
 
 Defaults: `--sample 100`, `--k 10`, `--repeat 1`, `--out results/<engine>.json`,
 and all logical CPUs for `--jobs`. `dataset verify` checks the pinned `base.csv`
-sha256 when the collection has the shipped benchmark's shape; pass
-`--expect-sha256` to require it explicitly. A set-level tie at the k boundary
-is reported as missing/extra ids, never hidden by choosing a preferred id.
+sha256 only when `--expect-sha256` is passed, as in CI. A set-level tie at the k
+boundary is reported as missing/extra ids, never hidden by choosing a preferred
+id.
 
 `--repeat N` performs N independent prepare+audit passes. `summary.failed`
 counts cases blocked in at least one pass by a mismatch or an error;
