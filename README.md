@@ -100,8 +100,10 @@ declares no license, and public scorecards contain no query vectors. Set
 `ci` checks pins, format, lint, unit tests and the release build. `integration`
 checks pins, runs the full audit against the pinned engines, and uploads
 `results/scorecards/`. CI job success means the audit completed; it is not a
-correctness verdict. See [`scripts/README.md`](scripts/README.md) for the
-script interface and exit semantics.
+correctness verdict. CI runs on x86_64; engine failure counts can differ from
+the arm64 scorecards, so CI uses smoke bands. See
+[`scripts/README.md`](scripts/README.md) for the script interface and exit
+semantics.
 
 ## Crates
 

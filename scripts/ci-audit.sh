@@ -84,8 +84,13 @@ for engine in reference qdrant pgvector faiss; do
   ' "$report"
   case $engine in
     reference) jq -e '.summary.failed == 0 and .summary.order_only == 0 and .summary.errors == 0' "$report" ;;
-    pgvector) jq -e '.summary.failed == 542 and .summary.order_only == 4 and .summary.errors == 0' "$report" ;;
-    faiss) jq -e '.summary.failed == 541 and .summary.order_only == 4 and .summary.errors == 31' "$report" ;;
+    pgvector) jq -e '.summary.failed >= 400 and .summary.failed <= 650
+      and .summary.order_only >= 0 and .summary.order_only <= 20
+      and .summary.errors == 0 and .summary.unstable == 0' "$report" ;;
+    faiss) jq -e '.summary.failed >= 400 and .summary.failed <= 650
+      and .summary.order_only >= 0 and .summary.order_only <= 20
+      and .summary.errors >= 0 and .summary.errors <= 60
+      and .summary.unstable == 0' "$report" ;;
     qdrant) jq -e '([.runs[].failed] | min) >= 450 and ([.runs[].failed] | max) <= 650
       and .summary.failed >= 800 and .summary.failed <= 1000
       and .summary.failed_all >= 150 and .summary.failed_all <= 250
