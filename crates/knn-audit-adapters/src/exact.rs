@@ -106,14 +106,6 @@ pub fn squared_l2_f64(query: &[f32], vector: &[f32]) -> f64 {
     total
 }
 
-pub fn distance_interval(computed: f64, dim: usize) -> (f64, f64) {
-    if computed == 0.0 {
-        return (0.0, 0.0);
-    }
-    let relative = screening_relative(dim);
-    (computed * (1.0 - relative), computed * (1.0 + relative))
-}
-
 pub fn squared_l2_exact(query: &[f32], vector: &[f32]) -> ExactDistance {
     assert_eq!(query.len(), vector.len(), "dimension mismatch");
     let mut base = i32::MAX;
@@ -183,4 +175,39 @@ pub fn top_k_exact(query: &[f32], collection: &CollectionView<'_>, k: usize) -> 
     candidates.sort_by(|left, right| left.1.cmp(&right.1).then_with(|| left.0.cmp(&right.0)));
     candidates.truncate(k.min(count));
     candidates.into_iter().map(|(id, _)| id).collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn f64_interval_contains_exact_two_sided() {
+        let mut state = 0x1234_5678_9abc_def0_u64;
+        for case in 0..500 {
+            let mut query = [0.0_f32; 8];
+            let mut vector = [0.0_f32; 8];
+            for index in 0..8 {
+                state = state
+                    .wrapping_mul(6364136223846793005)
+                    .wrapping_add(1442695040888963407);
+                let raw = ((state >> 33) as i64) as f32 / i32::MAX as f32;
+                let scale = if case % 3 == 0 { 1.0e10_f32 } else { 1.0_f32 };
+                query[index] = raw * scale;
+                state = state
+                    .wrapping_mul(6364136223846793005)
+                    .wrapping_add(1442695040888963407);
+                let raw_other = ((state >> 33) as i64) as f32 / i32::MAX as f32;
+                vector[index] = raw_other * scale;
+            }
+            let exact = squared_l2_exact(&query, &vector);
+            let computed = squared_l2_f64(&query, &vector);
+            let relative = screening_relative(query.len());
+            let (lower, upper) = (computed * (1.0 - relative), computed * (1.0 + relative));
+            assert!(
+                exact.cmp_f64(lower) != Ordering::Less && exact.cmp_f64(upper) != Ordering::Greater,
+                "case {case}: f64 interval [{lower}, {upper}] does not contain the exact value"
+            );
+        }
+    }
 }

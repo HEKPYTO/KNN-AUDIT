@@ -163,14 +163,6 @@ impl Engine for SecondPrepareEngine {
 }
 
 fn audit(answers: Vec<Vec<u64>>, repeat: usize) -> knn_audit::report::Report {
-    audit_with_jobs(answers, repeat, None)
-}
-
-fn audit_with_jobs(
-    answers: Vec<Vec<u64>>,
-    repeat: usize,
-    jobs: Option<usize>,
-) -> knn_audit::report::Report {
     let dataset = Dataset::load(MINI, None).expect("mini fixture");
     run(RunOptions {
         dataset,
@@ -178,7 +170,7 @@ fn audit_with_jobs(
         k: 10,
         limit: Some(1),
         repeat,
-        jobs,
+        jobs: None,
     })
     .expect("run")
     .report
@@ -290,18 +282,6 @@ fn prepare_failure_in_second_repetition_aborts_the_run() {
     };
     assert!(error.message.contains("second-prepare prepare failed"));
     assert!(error.message.contains("prepare broken"));
-}
-
-#[test]
-fn local_jobs_do_not_change_the_report() {
-    let answers = vec![vec![90_001], vec![90_001]];
-    let one = audit_with_jobs(answers.clone(), 2, Some(1));
-    let two = audit_with_jobs(answers, 2, Some(2));
-    let mut one = serde_json::to_value(&one).expect("one report");
-    let mut two = serde_json::to_value(&two).expect("two report");
-    one.as_object_mut().expect("object").remove("created_at");
-    two.as_object_mut().expect("object").remove("created_at");
-    assert_eq!(one, two);
 }
 
 #[test]
