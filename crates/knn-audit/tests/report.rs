@@ -41,6 +41,7 @@ fn json_schema_is_ordered_and_failures_are_sorted() {
     let text = fs::read_to_string(&json).expect("report");
     let keys = [
         "schema",
+        "tool",
         "created_at",
         "dataset",
         "engine",

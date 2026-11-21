@@ -1,7 +1,7 @@
 use crate::compare::{self, Comparison, Severity};
 use crate::dataset::{Case, Dataset, DatasetError};
 use crate::report::{
-    CategorySummary, DatasetInfo, EngineInfo, Failure, Report, RunSummary, Summary,
+    CategorySummary, DatasetInfo, EngineInfo, Failure, Report, RunSummary, Summary, ToolInfo,
 };
 use chrono::{SecondsFormat, Utc};
 use knn_audit_adapters::{CollectionView, Engine, Hit};
@@ -99,6 +99,10 @@ pub fn run(options: RunOptions) -> Result<RunResult, DatasetError> {
     let failures = collect_failures(&verdicts);
     let report = Report {
         schema: crate::report::SCHEMA.to_string(),
+        tool: ToolInfo {
+            name: env!("CARGO_PKG_NAME").to_string(),
+            version: env!("CARGO_PKG_VERSION").to_string(),
+        },
         created_at: Some(Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true)),
         dataset: DatasetInfo {
             root: Some(options.dataset.root.clone()),
