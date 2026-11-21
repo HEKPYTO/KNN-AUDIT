@@ -94,16 +94,18 @@ Measured 2026-11-21 on 1,616 queries, 22,501 x 128 `fp32` vectors:
 | Engine | Version | Wrong per reload | Wrong every reload | Unstable | Errors |
 |---|---|---:|---:|---:|---:|
 | reference | 0.1.0 | 0 | 0 | 0 | 0 |
-| Qdrant | 1.20.2 | 782-816 | 450 | 851 | 0 |
+| Qdrant | 1.20.2 | 782-816 | 449-450 | 851-852 | 0 |
 | pgvector | 0.8.7 | 546 | 546 | 0 | 0 |
 | FAISS | 1.12.0 | 545 | 545 | 0 | 31 |
 
-Qdrant's tie order is non-contractual. Over 10 independent reloads, 1,147
-queries were wrong at least once and 450 were wrong every time, so its score
-is a range, not one number. FAISS overflows f32 squared L2 on 31 queries and
-returns no neighbors; those count as errors with all expected ids missing.
-See [`results/README.md`](results/README.md) for per-run evidence, the claim
-ladder, disclosure status, and limits.
+Qdrant's tie order is non-contractual. Two independent groups of 10 reloads
+were run; 782-816 queries were wrong per reload, 449-450 were wrong every time,
+and 1,147-1,148 were wrong at least once per group. Its score is a range, not
+one number. FAISS overflows f32 squared L2 on 31 queries and returns no
+neighbors; those count as errors with all expected ids missing. See
+[`results/README.md`](results/README.md) for per-run evidence, engine
+configuration, category breakdown, the claim ladder, disclosure status, and
+limits.
 
 ## Dataset
 

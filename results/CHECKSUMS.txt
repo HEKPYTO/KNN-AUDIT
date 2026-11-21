@@ -1,0 +1,5 @@
+006fb4e95676e549b21f0498b0238e31541bc92cc9870026c6474dbbbdbecb30  results/scorecards/faiss-1.12.0.json
+4245e9d3cac3bde5b81487f1b021b8a1219f1701390f2e6c79531b31cc4da166  results/scorecards/pgvector-0.8.7.json
+0377b95e8f88062b29ed622101a27c5ee1eb8040cb780ad3ab4cfd7dd9e52ce1  results/scorecards/qdrant-1.20.2-repeat10-a.json
+06ddb071ba717827ef9da6d39695d02365e27a6d20e19cead1e8f0856edce9fa  results/scorecards/qdrant-1.20.2-repeat10-b.json
+35245b3524c193cdc75e750b51b13e1de9bddc1f8ae2b9a1b6f379e28ff8dde7  results/scorecards/reference-0.1.0.json
