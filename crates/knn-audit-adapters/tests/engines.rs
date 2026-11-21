@@ -227,3 +227,15 @@ fn faiss_search_reports_squared_l2_overflow() {
         .expect_err("overflow must be an adapter error");
     assert!(error.message.contains("overflow"), "{}", error.message);
 }
+
+#[test]
+fn faiss_missing_interpreter_is_an_adapter_error() {
+    let error = FaissEngine::new("/nonexistent/errpedia-faiss-python")
+        .err()
+        .expect("missing interpreter must fail without a request");
+    assert!(
+        error.message.contains("failed to start"),
+        "{}",
+        error.message
+    );
+}
