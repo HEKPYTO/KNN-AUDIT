@@ -85,16 +85,14 @@ pub fn run(options: RunOptions) -> Result<RunResult, DatasetError> {
                             ),
                         ),
                     },
-                    Err(error) => (
-                        Vec::new(),
-                        build_failure(
-                            case,
-                            expected_ids,
-                            &[],
-                            Comparison::default(),
-                            Some(error.message),
-                        ),
-                    ),
+                    Err(error) => {
+                        let comparison =
+                            compare::compare(&case.query, &collection, expected_ids, &[]);
+                        (
+                            Vec::new(),
+                            build_failure(case, expected_ids, &[], comparison, Some(error.message)),
+                        )
+                    }
                 };
                 (case.category.clone(), failure, actual_ids)
             })
@@ -114,6 +112,7 @@ pub fn run(options: RunOptions) -> Result<RunResult, DatasetError> {
         let mut missing = 0;
         let mut extra = 0;
         let mut rank_swaps = 0;
+        let mut errors = 0;
         for (outcome, (_, failure, actual_ids)) in outcomes.iter_mut().zip(results) {
             outcome.failures.push(failure.clone());
             if !outcome
@@ -128,10 +127,14 @@ pub fn run(options: RunOptions) -> Result<RunResult, DatasetError> {
                 missing += item.missing_ids.len();
                 extra += item.extra_ids.len();
                 rank_swaps += item.rank_swaps.len();
+                if item.error.is_some() {
+                    errors += 1;
+                }
             }
         }
         runs.push(RunSummary {
             failed,
+            errors,
             missing,
             extra,
             rank_swaps,
@@ -249,7 +252,7 @@ pub fn run(options: RunOptions) -> Result<RunResult, DatasetError> {
         runs,
     };
     let summary_line = format!(
-        "{name} {version} (repeat {}): {failed}/{cases_count} cases mismatch any ({failed_all} in every run, {unstable} unstable; {missing} missing, {extra} extra, {rank_swaps} rank swaps)",
+        "{name} {version} (repeat {}): {failed}/{cases_count} cases mismatch any ({failed_all} in every run, {unstable} unstable; {errors} errors; {missing} missing, {extra} extra, {rank_swaps} rank swaps)",
         options.repeat
     );
     Ok(RunResult {

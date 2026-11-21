@@ -56,6 +56,34 @@ impl Engine for EpochEngine {
     }
 }
 
+struct ErrorEngine;
+
+impl Engine for ErrorEngine {
+    fn name(&self) -> &'static str {
+        "error"
+    }
+
+    fn version(&self) -> String {
+        "test".to_string()
+    }
+
+    fn prepare(&mut self, _collection: &CollectionView<'_>) -> Result<(), AdapterError> {
+        Ok(())
+    }
+
+    fn search(&self, _query: &[f32], _k: usize) -> Result<Vec<Hit>, AdapterError> {
+        Err(AdapterError::new("engine failed"))
+    }
+
+    fn capabilities(&self) -> Caps {
+        Caps {
+            exact_mode: true,
+            distance_metric: Metric::SquaredL2,
+            supports_ids: true,
+        }
+    }
+}
+
 fn audit(answers: Vec<Vec<u64>>, repeat: usize) -> knn_audit::report::Report {
     let dataset = Dataset::load(MINI).expect("mini fixture");
     run(RunOptions {
@@ -151,4 +179,34 @@ fn single_audit_keeps_existing_counts() {
     assert_eq!(report.runs.len(), 1);
     assert_eq!(report.failures[0].failed_repetitions, vec![1]);
     assert!(report.failures[0].unstable_actual_ids.is_empty());
+}
+
+#[test]
+fn adapter_error_counts_every_expected_id_as_missing() {
+    let dataset = Dataset::load(MINI).expect("mini fixture");
+    let result = run(RunOptions {
+        dataset,
+        engine: Box::new(ErrorEngine),
+        k: 10,
+        limit: Some(1),
+        repeat: 1,
+    })
+    .expect("run");
+    assert_eq!(result.report.summary.errors, 1);
+    assert_eq!(result.report.summary.missing, CORRECT.len());
+    assert_eq!(result.report.summary.extra, 0);
+    assert_eq!(result.report.runs.len(), 1);
+    assert_eq!(result.report.runs[0].errors, 1);
+    assert_eq!(result.report.runs[0].missing, CORRECT.len());
+    assert_eq!(
+        result.report.failures[0].error.as_deref(),
+        Some("engine failed")
+    );
+    assert!(result.summary_line.contains("1 errors; 10 missing"));
+    assert!(
+        result
+            .report
+            .to_html()
+            .contains("<th>run</th><th>failed</th><th>errors</th>")
+    );
 }

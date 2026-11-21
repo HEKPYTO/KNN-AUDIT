@@ -209,7 +209,9 @@ fn repeat_summary_line_reports_any_and_every_run() {
     assert_eq!(output.status.code(), Some(0));
     let stdout = String::from_utf8(output.stdout).expect("utf8 stdout");
     assert!(stdout.contains("reference 0.1.0 (repeat 2): 0/8 cases mismatch any"));
-    assert!(stdout.contains("0 in every run, 0 unstable; 0 missing, 0 extra, 0 rank swaps"));
+    assert!(
+        stdout.contains("0 in every run, 0 unstable; 0 errors; 0 missing, 0 extra, 0 rank swaps")
+    );
 }
 
 #[test]
@@ -251,7 +253,7 @@ fn pgvector_dispatch_reports_adapter_error() {
         .expect("pgvector dispatch");
     assert_eq!(output.status.code(), Some(2));
     let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
-    assert!(stderr.contains("pgvector prepare failed"));
+    assert!(stderr.contains("pgvector connection failed"));
 }
 
 #[test]
@@ -321,7 +323,7 @@ fn rank_swap_only_does_not_fail_with_flag() {
     let text = stdout(&output);
     assert!(
         text.contains(
-            "1/1 cases mismatch any (1 in every run, 0 unstable; 0 missing, 0 extra, 2 rank swaps)"
+            "1/1 cases mismatch any (1 in every run, 0 unstable; 0 errors; 0 missing, 0 extra, 2 rank swaps)"
         ),
         "{text}"
     );
