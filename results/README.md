@@ -52,8 +52,8 @@ and tool version:
 Qdrant does not contract tie order. Four committed groups of 10 independent
 reloads plus one independent audit group were run from the same pins. Across
 the 50 reloads the per-reload failure count was 771-828 (median 799, mean
-801.5 over the 40 committed reloads), with missing 1229-1287, extra 1150-1208,
-and rank swaps 2562-2638.
+801.5 over the 40 committed reloads), with missing 1220-1287, extra 1141-1208,
+and rank swaps 2555-2638, including the independent audit sample.
 
 | Group | Wrong at least once | Wrong every reload | Unstable |
 |---|---:|---:|---:|
