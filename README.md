@@ -75,6 +75,21 @@ and report but do not fail the run. Every failure carries the query vector,
 expected ids, actual ids, and the dataset sha256 so the case can be reproduced
 without the dataset copy that produced it.
 
+## Results
+
+Measured 2026-11-21 on 1,616 queries, 22,501 x 128 `fp32` vectors:
+
+| Engine | Version | Wrong cases (any) | Wrong in every run | Unstable | Errors |
+|---|---|---:|---:|---:|---:|
+| reference | 0.1.0 | 0/1616 | 0 | 0 | 0 |
+| Qdrant | 1.20.2 | 1056/1616 | 533 | 676 | 0 |
+| pgvector | 0.8.7 | 546/1616 | 546 | 0 | 0 |
+| FAISS | 1.12.0 | 545/1616 | 545 | 0 | 31 |
+
+Qdrant's tie order is non-contractual, so its counts vary by a few cases across
+reloads; `--repeat 3` reports every run instead of one number. See
+[`results/README.md`](results/README.md) for the method and caveats.
+
 ## Dataset
 
 The benchmark data is not distributed with this repository and is not
