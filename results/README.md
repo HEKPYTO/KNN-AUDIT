@@ -27,7 +27,7 @@ reader does not have to trust this table.
 | Engine | Version | Wrong per reload | Wrong every reload | Unstable | Errors |
 |---|---|---:|---:|---:|---:|
 | reference | 0.1.0 | 0 | 0 | 0 | 0 |
-| Qdrant | 1.20.2 | 771-825 | 449-452 | 848-852 | 0 |
+| Qdrant | 1.20.2 | 771-828 | 449-452 | 848-852 | 0 |
 | pgvector | 0.8.7 | 546 | 546 | 0 | 0 |
 | FAISS | 1.12.0 | 545 | 545 | 0 | 31 |
 
@@ -40,6 +40,7 @@ and tool version:
 | [`scorecards/qdrant-1.20.2-repeat10-a.json`](scorecards/qdrant-1.20.2-repeat10-a.json) | Qdrant group A, 10 reloads |
 | [`scorecards/qdrant-1.20.2-repeat10-b.json`](scorecards/qdrant-1.20.2-repeat10-b.json) | Qdrant group B, 10 reloads |
 | [`scorecards/qdrant-1.20.2-repeat10-c.json`](scorecards/qdrant-1.20.2-repeat10-c.json) | Qdrant group C, 10 reloads |
+| [`scorecards/qdrant-1.20.2-repeat10-d.json`](scorecards/qdrant-1.20.2-repeat10-d.json) | Qdrant group D, 10 reloads |
 | [`scorecards/pgvector-0.8.7.json`](scorecards/pgvector-0.8.7.json) | pgvector, 3 reloads |
 | [`scorecards/faiss-1.12.0.json`](scorecards/faiss-1.12.0.json) | FAISS, 3 reloads |
 
@@ -48,10 +49,10 @@ and tool version:
 
 ## Qdrant is a range, not a number
 
-Qdrant does not contract tie order. Three committed groups of 10 independent
+Qdrant does not contract tie order. Four committed groups of 10 independent
 reloads plus one independent audit group were run from the same pins. Across
-the 40 reloads the per-reload failure count was 771-825 (median 799.5, mean
-801.4 over the 30 committed reloads), with missing 1231-1283, extra 1152-1204,
+the 50 reloads the per-reload failure count was 771-828 (median 799, mean
+801.5 over the 40 committed reloads), with missing 1229-1287, extra 1150-1208,
 and rank swaps 2562-2638.
 
 | Group | Wrong at least once | Wrong every reload | Unstable |
@@ -59,9 +60,10 @@ and rank swaps 2562-2638.
 | A | 1,147 | 452 | 848 |
 | B | 1,148 | 449 | 852 |
 | C | 1,148 | 452 | 851 |
+| D | 1,148 | 449 | 851 |
 | independent audit | 1,145 | 452 | 848 |
 
-The groups agree within three cases on every aggregate. A single run is a
+The groups agree within four cases on every aggregate. A single run is a
 sample: use `--repeat 10` and report the observed range and per-reload counts.
 The bands are observations, not statistical guarantees. The committed
 scorecards carry all 10 runs each.
@@ -70,7 +72,7 @@ pgvector and FAISS were byte-identical across reloads.
 
 ## Failure categories
 
-Qdrant columns are the observed range across groups A, B, C, widened where the
+Qdrant columns are the observed range across groups A-D, widened where the
 independent audit differed (neartie 189, order_disc 288). pgvector and FAISS
 are stable, so their columns are also the per-reload counts.
 
@@ -125,7 +127,7 @@ under the engine's own scores while exact arithmetic separated them. Details:
 | Level | Claim allowed |
 |---|---|
 | Evidence | "Qdrant 1.20.2, pgvector 0.8.7, and FAISS 1.12.0, in exact mode, were run against Errpedia's 1,616 queries at top-10 on 2026-11-21." |
-| Result | "They returned mathematically incorrect top-10 sets on 771-825, 546, and 545 queries per reload respectively; Qdrant was wrong on 1,145-1,148 distinct queries across each 10-reload group." |
+| Result | "They returned mathematically incorrect top-10 sets on 771-828, 546, and 545 queries per reload respectively; Qdrant was wrong on 1,145-1,148 distinct queries across each 10-reload group." |
 | Inference | "Exact search in these versions is not numerically exact on this dataset." |
 | Forbidden | "Vector databases are broken." / "Engine X is unusable." / "ANN recall was measured." |
 
@@ -136,7 +138,7 @@ exact-mode flag, and the scorecard link.
 
 | Engine | Cases | Packet | Status |
 |---|---:|---|---|
-| Qdrant | 771-825 per reload, 449-452 always | `qdrant-1.20.2-repeat10-a.json`, `-b.json`, `-c.json` | prepared, not sent |
+| Qdrant | 771-828 per reload, 449-452 always | `qdrant-1.20.2-repeat10-a.json`, `-b.json`, `-c.json`, `-d.json` | prepared, not sent |
 | pgvector | 546 | `pgvector-0.8.7.json` | prepared, not sent |
 | FAISS | 545, 31 overflow errors | `faiss-1.12.0.json` | prepared, not sent |
 
@@ -188,10 +190,10 @@ KNN_AUDIT=./target/release/knn-audit FAISS_PYTHON=.venv-faiss/bin/python \
 ```
 
 The same steps run in the real-engine CI job. Qdrant uses `--repeat 10`;
-reference, pgvector, and FAISS use `--repeat 3`. A fresh clone of the
-release-candidate tree installed with `cargo install --locked`, fetched the
-pinned dataset commit, passed the gated test suite, and ran the script end to
-end. The workflow pins action SHAs, Rust 1.100.0, the CI image, both engine
+reference, pgvector, and FAISS use `--repeat 3`. A fresh clone at `6ccc111` installed with
+`cargo install --locked`, fetched the pinned dataset commit, passed the gated
+test suite, and ran the script end to end; its Qdrant sample was 782-828 per
+reload, 1,148 at least once, 449 every reload, 851 unstable. The workflow pins action SHAs, Rust 1.100.0, the CI image, both engine
 image digests, the dataset commit, and the Python requirements. The workflow
 has not yet executed on GitHub from this private workspace; the fresh-clone
 run is the current execution evidence.
