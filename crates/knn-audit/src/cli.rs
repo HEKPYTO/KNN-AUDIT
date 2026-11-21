@@ -174,15 +174,26 @@ fn run_command(args: RunArgs) -> ExitCode {
     let faiss_python = faiss_python.unwrap_or_else(|| {
         std::env::var("KNN_AUDIT_FAISS_PYTHON").unwrap_or_else(|_| "python3".to_string())
     });
-    let engine = match EngineSpec::new(
-        &engine_name,
-        &engine_url,
-        &database_url,
-        &collection,
-        &faiss_python,
-    )
-    .and_then(|spec| spec.build())
-    {
+    let spec = match engine_name.as_str() {
+        "reference" => EngineSpec::Reference,
+        "qdrant" => EngineSpec::Qdrant {
+            url: engine_url,
+            collection,
+        },
+        "pgvector" => EngineSpec::PgVector {
+            url: database_url,
+            collection,
+        },
+        "faiss" => EngineSpec::Faiss {
+            python: faiss_python,
+        },
+        other => {
+            return error_exit(format!(
+                "engine {other:?} is not available; available engines: reference, qdrant, pgvector, faiss"
+            ));
+        }
+    };
+    let engine = match spec.build() {
         Ok(engine) => engine,
         Err(error) => return error_exit(error),
     };
@@ -235,32 +246,6 @@ enum EngineSpec {
 }
 
 impl EngineSpec {
-    fn new(
-        name: &str,
-        engine_url: &str,
-        database_url: &str,
-        collection: &str,
-        faiss_python: &str,
-    ) -> Result<Self, String> {
-        match name {
-            "reference" => Ok(Self::Reference),
-            "qdrant" => Ok(Self::Qdrant {
-                url: engine_url.to_string(),
-                collection: collection.to_string(),
-            }),
-            "pgvector" => Ok(Self::PgVector {
-                url: database_url.to_string(),
-                collection: collection.to_string(),
-            }),
-            "faiss" => Ok(Self::Faiss {
-                python: faiss_python.to_string(),
-            }),
-            other => Err(format!(
-                "engine {other:?} is not available; available engines: reference, qdrant, pgvector, faiss"
-            )),
-        }
-    }
-
     fn build(&self) -> Result<Box<dyn Engine + Send + Sync>, String> {
         match self {
             Self::Reference => Ok(Box::new(ReferenceEngine::new())),

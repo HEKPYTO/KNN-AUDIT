@@ -171,6 +171,7 @@ pub fn top_k_exact(
         0.0
     } else {
         threshold * (1.0 + screening_relative(collection.dim))
+            / (1.0 - screening_relative(collection.dim))
     };
     let mut candidates: Vec<(u64, ExactDistance)> = Vec::new();
     for index in 0..count {
