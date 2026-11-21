@@ -7,3 +7,12 @@ docs/
 results/*.html
 *.hprof
 .DS_Store
+.claude/
+.adal/
+.gemini/
+.grok/
+.kiro/
+.windsurf/
+opencode.json
+GEMINI.md
+.github/copilot-instructions.md
