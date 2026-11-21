@@ -188,6 +188,30 @@ fn zero_repeat_is_a_usage_error() {
 }
 
 #[test]
+fn repeat_summary_line_reports_any_and_every_run() {
+    let temp = tempfile::tempdir().expect("temp output");
+    let out = temp.path().join("repeat.json");
+    let output = command()
+        .args([
+            "run",
+            "--dataset",
+            MINI,
+            "--engine",
+            "reference",
+            "--repeat",
+            "2",
+            "--out",
+            out.to_str().expect("out path"),
+        ])
+        .output()
+        .expect("repeat audit");
+    assert_eq!(output.status.code(), Some(0));
+    let stdout = String::from_utf8(output.stdout).expect("utf8 stdout");
+    assert!(stdout.contains("reference 0.1.0 (repeat 2): 0/8 cases mismatch any"));
+    assert!(stdout.contains("0 in every run, 0 unstable; 0 missing, 0 extra, 0 rank swaps"));
+}
+
+#[test]
 fn qdrant_dispatch_reports_adapter_error() {
     let output = command()
         .args([
@@ -295,7 +319,9 @@ fn rank_swap_only_does_not_fail_with_flag() {
     assert_eq!(output.status.code(), Some(0), "{}", stdout(&output));
     let text = stdout(&output);
     assert!(
-        text.contains("1/1 cases mismatch (0 missing, 0 extra, 2 rank swaps)"),
+        text.contains(
+            "1/1 cases mismatch any (1 in every run, 0 unstable; 0 missing, 0 extra, 2 rank swaps)"
+        ),
         "{text}"
     );
     let report: Value =

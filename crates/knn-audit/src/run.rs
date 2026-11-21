@@ -1,6 +1,8 @@
 use crate::compare::{self, Comparison, RankSwap};
 use crate::dataset::{Dataset, DatasetError};
-use crate::report::{CategorySummary, DatasetInfo, EngineInfo, Failure, Report, Summary};
+use crate::report::{
+    CategorySummary, DatasetInfo, EngineInfo, Failure, Report, RunSummary, Summary,
+};
 use chrono::{SecondsFormat, Utc};
 use knn_audit_adapters::Engine;
 use rayon::prelude::*;
@@ -22,7 +24,8 @@ pub struct RunResult {
 
 struct Outcome {
     category: String,
-    failure: Option<Failure>,
+    failures: Vec<Option<Failure>>,
+    actual_sets: Vec<Vec<u64>>,
     unstable: bool,
 }
 
@@ -43,26 +46,33 @@ pub fn run(options: RunOptions) -> Result<RunResult, DatasetError> {
         .iter()
         .map(|case| dataset.expected_ids(case, options.k))
         .collect::<Result<_, _>>()?;
-    let mut engine = options.engine;
-    engine
-        .prepare(&dataset.collection())
-        .map_err(|error| DatasetError::new(format!("{} prepare failed: {error}", engine.name())))?;
-    let engine: Arc<dyn Engine + Send + Sync> = Arc::from(engine);
     let collection = dataset.collection();
-    let outcomes: Vec<Outcome> = cases
-        .par_iter()
-        .zip(expected.par_iter())
-        .map(|(case, expected_ids)| {
-            let mut actual_sets: Vec<Vec<u64>> = Vec::new();
-            let mut failure: Option<Failure> = None;
-            for _ in 0..options.repeat {
-                let (actual_ids, found) = match engine.search(&case.query, options.k) {
+    let mut engine: Arc<dyn Engine + Send + Sync> = Arc::from(options.engine);
+    let mut outcomes: Vec<Outcome> = Vec::new();
+    let mut runs: Vec<RunSummary> = Vec::with_capacity(options.repeat);
+
+    for repetition in 0..options.repeat {
+        let prepared = Arc::get_mut(&mut engine)
+            .ok_or_else(|| DatasetError::new("engine is shared before prepare"))?
+            .prepare(&collection);
+        if let Err(error) = prepared {
+            return Err(DatasetError::new(format!(
+                "{} prepare failed: {error}",
+                engine.name()
+            )));
+        }
+        let shared = Arc::clone(&engine);
+        let results: Vec<(String, Option<Failure>, Vec<u64>)> = cases
+            .par_iter()
+            .zip(expected.par_iter())
+            .map(|(case, expected_ids)| {
+                let (actual_ids, failure) = match shared.search(&case.query, options.k) {
                     Ok(hits) => match parse_ids(&hits) {
                         Ok(ids) => {
                             let comparison =
                                 compare::compare(&case.query, &collection, expected_ids, &ids);
-                            let found = build_failure(case, expected_ids, &ids, comparison, None);
-                            (ids, found)
+                            let failure = build_failure(case, expected_ids, &ids, comparison, None);
+                            (ids, failure)
                         }
                         Err(message) => (
                             Vec::new(),
@@ -86,36 +96,75 @@ pub fn run(options: RunOptions) -> Result<RunResult, DatasetError> {
                         ),
                     ),
                 };
-                if !actual_sets.contains(&actual_ids) {
-                    actual_sets.push(actual_ids);
-                }
-                let decisive = found.as_ref().is_some_and(|item| {
-                    !item.missing_ids.is_empty()
-                        || !item.extra_ids.is_empty()
-                        || item.error.is_some()
-                });
-                if decisive || failure.is_none() {
-                    failure = found;
-                }
+                (case.category.clone(), failure, actual_ids)
+            })
+            .collect();
+        if repetition == 0 {
+            outcomes = results
+                .iter()
+                .map(|(category, ..)| Outcome {
+                    category: category.clone(),
+                    failures: Vec::with_capacity(options.repeat),
+                    actual_sets: Vec::new(),
+                    unstable: false,
+                })
+                .collect();
+        }
+        let mut failed = 0;
+        let mut missing = 0;
+        let mut extra = 0;
+        let mut rank_swaps = 0;
+        for (outcome, (_, failure, actual_ids)) in outcomes.iter_mut().zip(results) {
+            outcome.failures.push(failure.clone());
+            if !outcome
+                .actual_sets
+                .iter()
+                .any(|seen| same_set(seen, &actual_ids))
+            {
+                outcome.actual_sets.push(actual_ids);
             }
-            let unstable = actual_sets.len() > 1;
-            if let Some(item) = failure.as_mut() {
-                item.unstable = unstable;
-                if unstable {
-                    item.unstable_actual_ids = actual_sets.clone();
-                }
+            if let Some(item) = failure {
+                failed += 1;
+                missing += item.missing_ids.len();
+                extra += item.extra_ids.len();
+                rank_swaps += item.rank_swaps.len();
             }
-            Outcome {
-                category: case.category.clone(),
-                failure,
-                unstable,
+        }
+        runs.push(RunSummary {
+            failed,
+            missing,
+            extra,
+            rank_swaps,
+            unstable: 0,
+        });
+    }
+
+    for outcome in &mut outcomes {
+        outcome.unstable = outcome.actual_sets.len() > 1;
+    }
+    let unstable = outcomes.iter().filter(|outcome| outcome.unstable).count();
+    for run in &mut runs {
+        run.unstable = unstable;
+    }
+
+    let mut failures: Vec<Failure> = Vec::new();
+    for outcome in &outcomes {
+        let failed_repetitions: Vec<usize> = outcome
+            .failures
+            .iter()
+            .enumerate()
+            .filter_map(|(index, failure)| failure.as_ref().map(|_| index + 1))
+            .collect();
+        if let Some(first) = outcome.failures.iter().flatten().next() {
+            let mut failure = first.clone();
+            failure.failed_repetitions = failed_repetitions;
+            failure.unstable = outcome.unstable;
+            if outcome.unstable {
+                failure.unstable_actual_ids = outcome.actual_sets.clone();
             }
-        })
-        .collect();
-    let mut failures: Vec<Failure> = outcomes
-        .iter()
-        .filter_map(|outcome| outcome.failure.clone())
-        .collect();
+            failures.push(failure);
+        }
+    }
     failures.sort_by(|left, right| {
         left.case_id
             .cmp(&right.case_id)
@@ -127,7 +176,7 @@ pub fn run(options: RunOptions) -> Result<RunResult, DatasetError> {
             .entry(outcome.category.clone())
             .or_insert((0, 0));
         entry.0 += 1;
-        if outcome.failure.is_some() {
+        if outcome.failures.iter().any(Option::is_some) {
             entry.1 += 1;
         }
     }
@@ -139,22 +188,28 @@ pub fn run(options: RunOptions) -> Result<RunResult, DatasetError> {
             failed,
         })
         .collect();
-    let missing = failures
+    let missing: usize = failures
         .iter()
         .map(|failure| failure.missing_ids.len())
         .sum();
-    let extra = failures.iter().map(|failure| failure.extra_ids.len()).sum();
-    let rank_swaps = failures
+    let extra: usize = failures.iter().map(|failure| failure.extra_ids.len()).sum();
+    let rank_swaps: usize = failures
         .iter()
         .map(|failure| failure.rank_swaps.len())
         .sum();
-    let errors = failures
+    let errors: usize = failures
         .iter()
         .filter(|failure| failure.error.is_some())
         .count();
     let cases_count = outcomes.len();
-    let failed = failures.len();
-    let unstable = outcomes.iter().filter(|outcome| outcome.unstable).count();
+    let failed = outcomes
+        .iter()
+        .filter(|outcome| outcome.failures.iter().any(Option::is_some))
+        .count();
+    let failed_all = outcomes
+        .iter()
+        .filter(|outcome| outcome.failures.iter().all(Option::is_some))
+        .count();
     let summary = Summary {
         cases: cases_count,
         passed: cases_count - failed,
@@ -164,6 +219,7 @@ pub fn run(options: RunOptions) -> Result<RunResult, DatasetError> {
         extra,
         rank_swaps,
         unstable,
+        failed_all,
     };
     let name = engine.name().to_string();
     let version = engine.version();
@@ -189,14 +245,28 @@ pub fn run(options: RunOptions) -> Result<RunResult, DatasetError> {
         summary,
         categories,
         failures,
+        repeat: options.repeat,
+        runs,
     };
     let summary_line = format!(
-        "{name} {version}: {failed}/{cases_count} cases mismatch ({missing} missing, {extra} extra, {rank_swaps} rank swaps)"
+        "{name} {version} (repeat {}): {failed}/{cases_count} cases mismatch any ({failed_all} in every run, {unstable} unstable; {missing} missing, {extra} extra, {rank_swaps} rank swaps)",
+        options.repeat
     );
     Ok(RunResult {
         report,
         summary_line,
     })
+}
+
+fn same_set(left: &[u64], right: &[u64]) -> bool {
+    if left.len() != right.len() {
+        return false;
+    }
+    let mut left = left.to_vec();
+    let mut right = right.to_vec();
+    left.sort_unstable();
+    right.sort_unstable();
+    left == right
 }
 
 fn parse_ids(hits: &[knn_audit_adapters::Hit]) -> Result<Vec<u64>, String> {
@@ -235,6 +305,7 @@ fn build_failure(
         rank_swaps,
         distance_gap: comparison.distance_gap,
         error,
+        failed_repetitions: Vec::new(),
         unstable: false,
         unstable_actual_ids: Vec::new(),
     })

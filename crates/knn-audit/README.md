@@ -31,11 +31,12 @@ sha256 when the loaded collection has the shipped benchmark's shape. A set-level
 tie at the k boundary is reported as missing/extra ids; it is never hidden by
 choosing a preferred id.
 
-`--repeat N` searches each case N times. A case fails when any repeat has
-missing ids, extra ids or an adapter error. `summary.unstable` counts cases whose
-distinct answers differ; each failure carries `unstable` and
-`unstable_actual_ids` with the distinct ordered id lists. With `N=1` the report
-has `unstable: 0` and no per-failure stability data.
+`--repeat N` runs N independent audits: each one calls `prepare` again and
+runs all cases. `summary.failed` counts cases failing any run, `failed_all`
+counts cases failing every run, and `unstable` counts cases with distinct id
+sets across runs (order alone is not instability). `runs[]` holds each run's
+counts; each failure carries `failed_repetitions` and `unstable_actual_ids`.
+With `N=1` counts match a single audit and stability data is empty.
 
 Exit codes: `0` clean, `1` with `--fail-on-mismatch` only for missing ids, extra
 ids or adapter errors, `2` usage, dataset, adapter or report errors. Rank swaps
