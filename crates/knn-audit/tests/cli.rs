@@ -1,4 +1,7 @@
 use assert_cmd::Command;
+use knn_audit::adapters::{AdapterError, Caps, CollectionView, Engine, Hit, Metric};
+use knn_audit::dataset::Dataset;
+use knn_audit::run::{RunOptions, run};
 use serde_json::Value;
 use std::fs;
 use std::path::PathBuf;
@@ -318,7 +321,11 @@ fn publish_report() -> Value {
             "version": "0.1.0",
             "exact_mode": true,
             "metric": "squared_l2",
-            "config_redacted": {"token": "secret-token"}
+            "config_redacted": {
+                "kernel": "dyadic-rational",
+                "screening": "certified-f64",
+                "tie_break": "smaller-id"
+            }
         },
         "k": 2,
         "repeat": 2,
@@ -413,6 +420,16 @@ fn publish_writes_redacted_deterministic_scorecard() {
     assert_eq!(scorecard["dataset"]["dim"], 4);
     assert_eq!(scorecard["engine"]["name"], "reference");
     assert_eq!(scorecard["engine"]["metric"], "squared_l2");
+    assert_eq!(scorecard["tool"]["name"], "knn-audit");
+    assert_eq!(scorecard["tool"]["version"], env!("CARGO_PKG_VERSION"));
+    assert_eq!(
+        scorecard["engine"]["config"],
+        serde_json::json!({
+            "kernel": "dyadic-rational",
+            "screening": "certified-f64",
+            "tie_break": "smaller-id"
+        })
+    );
     assert_eq!(scorecard["k"], 2);
     assert_eq!(scorecard["repeat"], 2);
     assert_eq!(scorecard["runs"].as_array().expect("runs").len(), 1);
@@ -660,4 +677,102 @@ fn faiss_dispatch_uses_python_protocol_worker() {
     assert_eq!(report["summary"]["cases"], 8);
     assert_eq!(report["summary"]["failed"], 0);
     assert_eq!(report["summary"]["errors"], 0);
+}
+
+struct ProvenanceEngine;
+
+impl Engine for ProvenanceEngine {
+    fn name(&self) -> &'static str {
+        "provenance"
+    }
+
+    fn version(&self) -> String {
+        "test".to_string()
+    }
+
+    fn prepare(&mut self, _collection: &CollectionView<'_>) -> Result<(), AdapterError> {
+        Ok(())
+    }
+
+    fn search(&self, query: &[f32], k: usize) -> Result<Vec<Hit>, AdapterError> {
+        Ok(query
+            .iter()
+            .take(k)
+            .enumerate()
+            .map(|(id, _)| Hit {
+                id: id.to_string(),
+                distance: None,
+            })
+            .collect())
+    }
+
+    fn capabilities(&self) -> Caps {
+        Caps {
+            exact_mode: true,
+            distance_metric: Metric::SquaredL2,
+            supports_ids: true,
+        }
+    }
+
+    fn config(&self) -> std::collections::BTreeMap<String, String> {
+        std::collections::BTreeMap::from([
+            ("kernel".to_string(), "dyadic-rational".to_string()),
+            ("screening".to_string(), "certified-f64".to_string()),
+        ])
+    }
+}
+
+#[test]
+fn engine_config_flows_from_run_to_published_scorecard() {
+    let report = run(RunOptions {
+        dataset: Dataset::load(MINI).expect("mini fixture"),
+        engine: Box::new(ProvenanceEngine),
+        k: 2,
+        limit: Some(2),
+        repeat: 1,
+    })
+    .expect("run")
+    .report;
+    let expected = serde_json::json!({
+        "kernel": "dyadic-rational",
+        "screening": "certified-f64"
+    });
+    assert_eq!(
+        serde_json::to_value(&report.engine.config_redacted).expect("config json"),
+        expected
+    );
+    let temp = tempfile::tempdir().expect("temp output");
+    let input = temp.path().join("report.json");
+    let out = temp.path().join("scorecard.json");
+    fs::write(&input, serde_json::to_string(&report).expect("report json")).expect("report");
+    command()
+        .args([
+            "publish",
+            "--input",
+            input.to_str().expect("input"),
+            "--out",
+            out.to_str().expect("out"),
+        ])
+        .assert()
+        .success();
+    let text = fs::read_to_string(&out).expect("scorecard");
+    let scorecard: Value = serde_json::from_str(&text).expect("scorecard json");
+    assert_eq!(scorecard["engine"]["config"], expected);
+    assert_eq!(scorecard["tool"]["name"], "knn-audit");
+    assert_eq!(scorecard["tool"]["version"], env!("CARGO_PKG_VERSION"));
+    let mut keys = Vec::new();
+    let mut strings = Vec::new();
+    collect(&scorecard, &mut keys, &mut strings);
+    assert!(
+        !keys
+            .iter()
+            .any(|key| key == "query" || key == "root" || key == "config_redacted")
+    );
+    let config = scorecard["engine"]["config"].as_object().expect("config");
+    assert!(config.iter().all(|(key, value)| {
+        ["http", "postgres", "password", "/"]
+            .iter()
+            .all(|marker| !key.contains(marker) && !value.to_string().contains(marker))
+    }));
+    assert!(!text.contains("secret"));
 }

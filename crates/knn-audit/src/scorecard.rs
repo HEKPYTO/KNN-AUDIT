@@ -1,12 +1,14 @@
 use crate::compare::RankSwap;
 use crate::report::{CategorySummary, Report, RunSummary, Summary};
 use serde::Serialize;
+use std::collections::BTreeMap;
 
 pub const SCORECARD_SCHEMA: &str = "knn-audit-scorecard/v1";
 
 #[derive(Serialize)]
 pub struct Scorecard {
     schema: &'static str,
+    tool: ScorecardTool,
     created_at: String,
     dataset: ScorecardDataset,
     engine: ScorecardEngine,
@@ -32,6 +34,13 @@ struct ScorecardEngine {
     version: String,
     exact_mode: bool,
     metric: String,
+    config: BTreeMap<String, String>,
+}
+
+#[derive(Serialize)]
+struct ScorecardTool {
+    name: &'static str,
+    version: &'static str,
 }
 
 #[derive(Serialize)]
@@ -71,6 +80,10 @@ impl From<Report> for Scorecard {
         });
         Self {
             schema: SCORECARD_SCHEMA,
+            tool: ScorecardTool {
+                name: "knn-audit",
+                version: env!("CARGO_PKG_VERSION"),
+            },
             created_at,
             dataset: ScorecardDataset {
                 base_sha256: dataset.base_sha256,
@@ -83,6 +96,7 @@ impl From<Report> for Scorecard {
                 version: engine.version,
                 exact_mode: engine.exact_mode,
                 metric: engine.metric,
+                config: engine.config_redacted,
             },
             k,
             repeat,

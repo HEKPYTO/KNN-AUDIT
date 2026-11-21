@@ -3,6 +3,7 @@ use reqwest::blocking::Client;
 use reqwest::{Method, StatusCode};
 use serde::Serialize;
 use serde_json::{Value, json};
+use std::collections::BTreeMap;
 use std::time::Duration;
 
 const BATCH_SIZE: usize = 1000;
@@ -119,6 +120,17 @@ impl Engine for QdrantEngine {
 
     fn version(&self) -> String {
         self.version.clone().unwrap_or_default()
+    }
+
+    fn config(&self) -> BTreeMap<String, String> {
+        BTreeMap::from([
+            ("search".to_string(), "exact".to_string()),
+            ("distance".to_string(), "euclid".to_string()),
+            ("hnsw_m".to_string(), "0".to_string()),
+            ("indexing_threshold".to_string(), "0".to_string()),
+            ("default_segment_number".to_string(), "1".to_string()),
+            ("indexed_vectors_count".to_string(), "0".to_string()),
+        ])
     }
 
     fn prepare(&mut self, collection: &CollectionView<'_>) -> Result<(), AdapterError> {

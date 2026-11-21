@@ -1,5 +1,6 @@
 use crate::exact::top_k_exact;
 use crate::{AdapterError, Caps, CollectionView, Engine, Hit, Metric};
+use std::collections::BTreeMap;
 
 struct Collection {
     dim: usize,
@@ -35,6 +36,14 @@ impl Engine for ReferenceEngine {
 
     fn version(&self) -> String {
         env!("CARGO_PKG_VERSION").to_string()
+    }
+
+    fn config(&self) -> BTreeMap<String, String> {
+        BTreeMap::from([
+            ("kernel".to_string(), "dyadic-rational".to_string()),
+            ("screening".to_string(), "certified-f64".to_string()),
+            ("tie_break".to_string(), "smaller-id".to_string()),
+        ])
     }
 
     fn prepare(&mut self, collection: &CollectionView<'_>) -> Result<(), AdapterError> {
