@@ -2,6 +2,7 @@ use crate::{AdapterError, Caps, CollectionView, Engine, Hit, Metric};
 use bytes::BytesMut;
 use postgres::types::{Format, IsNull, ToSql, Type};
 use postgres::{Client, Config, NoTls};
+use std::collections::BTreeMap;
 use std::error::Error;
 use std::fmt::Write as _;
 use std::io::Write as _;
@@ -143,6 +144,15 @@ impl Engine for PgVectorEngine {
 
     fn version(&self) -> String {
         self.version.clone().unwrap_or_default()
+    }
+
+    fn config(&self) -> BTreeMap<String, String> {
+        BTreeMap::from([
+            ("plan".to_string(), "seq_scan".to_string()),
+            ("enable_indexscan".to_string(), "off".to_string()),
+            ("enable_bitmapscan".to_string(), "off".to_string()),
+            ("order".to_string(), "distance,id".to_string()),
+        ])
     }
 
     fn prepare(&mut self, collection: &CollectionView<'_>) -> Result<(), AdapterError> {

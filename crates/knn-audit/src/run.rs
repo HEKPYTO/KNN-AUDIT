@@ -236,7 +236,7 @@ pub fn run(options: RunOptions) -> Result<RunResult, DatasetError> {
             version: version.clone(),
             exact_mode: capabilities.exact_mode,
             metric: capabilities.distance_metric.as_str().to_string(),
-            config_redacted: BTreeMap::new(),
+            config_redacted: engine.config(),
         },
         k: options.k,
         summary,

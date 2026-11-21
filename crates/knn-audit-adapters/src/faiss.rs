@@ -1,6 +1,7 @@
 use crate::{AdapterError, Caps, CollectionView, Engine, Hit, Metric};
 use serde::Deserialize;
 use serde_json::{Value, json};
+use std::collections::BTreeMap;
 use std::ffi::OsStr;
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Child, ChildStdin, ChildStdout, Command, Stdio};
@@ -106,6 +107,14 @@ impl Engine for FaissEngine {
 
     fn version(&self) -> String {
         self.version.clone().unwrap_or_default()
+    }
+
+    fn config(&self) -> BTreeMap<String, String> {
+        BTreeMap::from([
+            ("index".to_string(), "IndexFlatL2".to_string()),
+            ("metric".to_string(), "squared_l2".to_string()),
+            ("overflow".to_string(), "reported_as_error".to_string()),
+        ])
     }
 
     fn prepare(&mut self, collection: &CollectionView<'_>) -> Result<(), AdapterError> {

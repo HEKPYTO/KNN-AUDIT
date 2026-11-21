@@ -10,6 +10,7 @@ pub use crate::qdrant::QdrantEngine;
 pub use crate::reference::ReferenceEngine;
 
 use serde::{Deserialize, Serialize};
+use std::collections::BTreeMap;
 use std::fmt;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
@@ -77,6 +78,10 @@ impl std::error::Error for AdapterError {}
 pub trait Engine {
     fn name(&self) -> &'static str;
     fn version(&self) -> String;
+
+    fn config(&self) -> BTreeMap<String, String> {
+        BTreeMap::new()
+    }
     fn prepare(&mut self, collection: &CollectionView<'_>) -> Result<(), AdapterError>;
     fn search(&self, query: &[f32], k: usize) -> Result<Vec<Hit>, AdapterError>;
     fn capabilities(&self) -> Caps;
