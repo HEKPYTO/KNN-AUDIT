@@ -17,6 +17,7 @@ env:
 jobs:
   integration:
     runs-on: ubuntu-24.04
+    timeout-minutes: 20
     services:
       qdrant:
         image: qdrant/qdrant:v1.20-unprivileged@sha256:f60765106f26981dabc593d88fe4d0c8138893442c7c59d62257390891b65277
