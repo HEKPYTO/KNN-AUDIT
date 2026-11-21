@@ -1,5 +1,10 @@
 # KNN-AUDIT
 
+[![ci](https://github.com/HEKPYTO/KNN-AUDIT/actions/workflows/ci.yml/badge.svg)](https://github.com/HEKPYTO/KNN-AUDIT/actions/workflows/ci.yml)
+[![integration](https://github.com/HEKPYTO/KNN-AUDIT/actions/workflows/integration.yml/badge.svg)](https://github.com/HEKPYTO/KNN-AUDIT/actions/workflows/integration.yml)
+[![release](https://img.shields.io/github/v/release/HEKPYTO/KNN-AUDIT)](https://github.com/HEKPYTO/KNN-AUDIT/releases)
+[![license](https://img.shields.io/badge/license-Apache--2.0-blue)](LICENSE)
+
 Audit whether an "exact" k-NN search is actually exact.
 
 Runs the pinned [Errpedia](https://arxiv.org/abs/2611.22474) benchmark
@@ -7,12 +12,18 @@ Runs the pinned [Errpedia](https://arxiv.org/abs/2611.22474) benchmark
 and an exact reference. Every returned set is compared to exact rational
 ground truth and published as a redacted scorecard. Independent work.
 
-## Requirements
+## Features
 
-Rust 1.100.0, Docker, `jq`, `curl`, and Python 3.12. All Rust commands use
-`--locked`.
+- One severity model: missing/extra ids and engine errors block; rank-only
+  swaps are reported separately.
+- Deterministic scorecards with engine config, dataset hash, per-reload
+  counts, and failing cases.
+- Reference, Qdrant, pgvector, and FAISS adapters.
+- Pinned dataset, engine images, Rust/Python versions, and CI actions.
 
-## Run from scratch
+## Quick start
+
+Requirements: Rust 1.100.0, Docker, `jq`, `curl`, Python 3.12.
 
 ```sh
 # Dataset, pinned by commit; ci-audit.sh verifies base.csv sha256.
@@ -36,9 +47,9 @@ cargo build --release --locked
 DATASET=.data/errpedia FAISS_PYTHON=.venv-faiss/bin/python ./scripts/ci-audit.sh
 ```
 
-`ci-audit.sh` checks the dataset hash, runs reference, Qdrant, pgvector and
-FAISS, and writes `results/scorecards/`. Export `QDRANT_GROUP=b`, `c` or `d`
-for another Qdrant sample.
+`ci-audit.sh` checks the dataset hash, runs all four engines, and writes
+`results/scorecards/`. Set `QDRANT_GROUP=b`, `c` or `d` for another Qdrant
+sample.
 
 `failed` means a missing/extra id or an engine error. `order_only` means the
 id set is correct but ranks differ; it never blocks. `--fail-on-mismatch`
@@ -59,7 +70,26 @@ arm64 measurement, exact/brute-force mode:
 Qdrant tie order is non-contractual. Committed evidence, claim ladder, limits,
 checksums and the x86 CI caveat: [`results/README.md`](results/README.md).
 
-## Documentation
+## Project layout
+
+| Path | Contents |
+|---|---|
+| `crates/knn-audit` | dataset loader, exact comparator, report, CLI |
+| `crates/knn-audit-adapters` | exact kernel and engine adapters |
+| `scripts` | audit runner, pin check, FAISS requirements |
+| `results` | scorecards, checksums, reviews |
+| `fixtures` | small datasets for tests |
+
+## Development
+
+```sh
+cargo fmt --check
+cargo clippy --workspace --all-targets --locked -- -D warnings
+cargo test --workspace --locked
+ERRPEDIA_DATASET=.data/errpedia cargo test --workspace --locked
+```
+
+More detail:
 
 - [`crates/knn-audit/README.md`](crates/knn-audit/README.md) - CLI, dataset, report
 - [`crates/knn-audit-adapters/README.md`](crates/knn-audit-adapters/README.md) - engine contract
