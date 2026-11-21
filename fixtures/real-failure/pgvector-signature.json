@@ -1,0 +1,37 @@
+{
+  "case_id": "absorb_002",
+  "category": "absorb",
+  "severity": "mismatch",
+  "expected_ids": [
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    67
+  ],
+  "actual_ids": [
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    66
+  ],
+  "missing_ids": [
+    67
+  ],
+  "extra_ids": [
+    66
+  ],
+  "rank_swaps": [],
+  "distance_gap": 1.0
+}
