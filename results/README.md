@@ -75,7 +75,7 @@ repository root with `shasum -a 256 -c results/CHECKSUMS.txt`. Review notes:
 | Level | Claim allowed |
 |---|---|
 | Evidence | "Qdrant 1.20.2, pgvector 0.8.7 and FAISS 1.12.0 in exact mode were run against the pinned Errpedia 1,616-query top-10 benchmark on 2026-11-21." |
-| Result | "Blocking id-set failures occurred on 543-603 Qdrant queries per reload (928-929 distinct per 10-reload group), 542 pgvector queries and 541 FAISS queries; FAISS also had 31 overflow errors. Order-only rank swaps were 219, 4 and 4 cases and did not block." |
+| Result | "Blocking failures occurred on 543-603 Qdrant queries per reload (928-929 distinct per 10-reload group), 542 pgvector queries and 541 FAISS queries (510 id-set mismatches, 31 overflow errors). Order-only rank swaps were 219, 4 and 4 cases and did not block." |
 | Inference | "Exact search in these versions is not numerically exact on this dataset." |
 | Forbidden | "ANN recall was measured", "all vector databases are broken", "engine X is unusable", "CI passed so the engines are exact", or treating a rank swap as a set failure. |
 
@@ -89,7 +89,7 @@ it is not a correctness verdict.
 |---|---|---|---|
 | Qdrant | 543-603 per reload, 200-204 always, 928-929 distinct per group | four `qdrant-1.20.2-repeat10-*.json` scorecards | prepared, not sent |
 | pgvector | 542 | `pgvector-0.8.7.json` | prepared, not sent |
-| FAISS | 541, 31 overflow errors | `faiss-1.12.0.json` | prepared, not sent |
+| FAISS | 541 blocked (510 id-set mismatches, 31 overflow errors) | `faiss-1.12.0.json` | prepared, not sent |
 
 No vendor contact has been made from this repository. Sending a packet needs
 owner action and dataset-license clarity; packets contain failing case ids,

@@ -18,6 +18,7 @@ an embedded Python worker and reports squared L2.
 idempotent, and a count mismatch is an `AdapterError`. Qdrant and pgvector add
 `cleanup()` for explicit teardown; the FAISS worker is killed by `Drop`.
 `search` returns `Hit { id, distance }` in engine order, never re-sorting ties.
+`version()` is populated by `prepare`; reports are built after prepare.
 `CollectionView` carries numeric ids and a flat `f32` vector buffer. `Caps`
 declares `exact_mode` and a `Metric` (`SquaredL2` or `L2`).
 
@@ -44,12 +45,13 @@ and defaults to `python3`; use Python 3.12 with `faiss-cpu==1.12.0`.
 
 ## Tests
 
-Unit tests define a deterministic fake engine that checks idempotent prepare,
-count mismatch, k above collection size, exact-mode failure and non-ASCII ids.
-Integration tests cover kernel edge cases (zero, negative zero, subnormal,
-absorption, overflow, ties) and a seeded random f64 interval oracle. Set
-`KNN_AUDIT_INTEGRATION=1` to also run the Qdrant, pgvector and FAISS tests;
-they need local engines on ports 6333 and 5432 and a Python 3.12 interpreter
-with `faiss-cpu==1.12.0`. Each test prints a skip note when its engine is not
-available. The CLI suite drives FAISS with a fake Python worker that needs no
-FAISS install.
+Unit tests cover the shared helpers: collection validation and count checks,
+batch slicing, id/vector text formats, the collection-name grammar, the exact
+kernel's f64 screening interval, and Postgres plan detection. Integration
+tests in `tests/exact.rs` cover kernel edge cases (zero, negative zero,
+subnormal, absorption, overflow, ties) and top-k tie-break behavior. The
+`check_contract` harness in `tests/engines.rs` prepares each engine twice,
+checks returned id order and the k cap, and validates distances in the
+engine's declared metric. Real Qdrant, pgvector and FAISS tests are gated
+behind `KNN_AUDIT_INTEGRATION=1` and skip with a note when their engine or a
+Python 3.12 interpreter with `faiss-cpu==1.12.0` is unavailable.

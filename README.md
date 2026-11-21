@@ -88,8 +88,8 @@ status, limits and artifact links.
 ## Dataset
 
 The benchmark data is not distributed with this repository. Point `--dataset`
-at a clone of commit `ba9bfbb7649b34d0c7619e2cf10bf6acb9fd6d06`; the tool
-verifies `base.csv` sha256
+at a clone of commit `ba9bfbb7649b34d0c7619e2cf10bf6acb9fd6d06`; pass
+`--expect-sha256` to verify `base.csv` against
 `c0158e652bf8bcd4ad8a42aa8eb642325ca76897109431241ada0ac7490d4beb`. The dataset
 declares no license, and public scorecards contain no query vectors. Set
 `ERRPEDIA_DATASET=<dir>` for gated real-dataset tests.
@@ -106,8 +106,8 @@ script interface and exit semantics.
 
 | Crate | Contents |
 |---|---|
-| `crates/knn-audit` | dataset loader, exact kernel, comparator, report, CLI |
-| `crates/knn-audit-adapters` | engine adapters behind one `Engine` trait |
+| `crates/knn-audit` | dataset loader, comparator, report, CLI |
+| `crates/knn-audit-adapters` | exact kernel and engine adapters behind one `Engine` trait |
 
 ## License
 
