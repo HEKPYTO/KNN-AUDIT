@@ -8,7 +8,7 @@ dataset's shipped ground truth. Canonical commands live in the
 
 | Module | Responsibility |
 |---|---|
-| `dataset` | Loads `data/base.csv` and collection files, validates shape and ids, checks the pinned sha256, recomputes sampled ground truth. |
+| `dataset` | Loads `data/base.csv` and collection files, validates shape and ids, checks `base.csv` sha256 when `--expect-sha256` is passed, recomputes sampled ground truth. |
 | `compare` | Classifies a query as `clean`, `order_only`, `mismatch` or `error` and records rank swaps and a diagnostic distance gap. |
 | `report` | Serializes `knn-audit/v1` reports and `knn-audit-scorecard/v1` scorecards, and renders escaped HTML. |
 | `run` | Prepares the engine, executes cases in parallel, and aggregates severity, stability and category counts. |
