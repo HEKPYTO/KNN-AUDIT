@@ -16,7 +16,7 @@ done
 curl -fsS "$QDRANT_URL/" >/dev/null
 
 verify=$("$KNN_AUDIT" dataset verify --dataset "$DATASET" --all)
-grep -q '0/1616' <<<"$verify"
+[[ "$verify" == "dataset verify: 0/1616 cases mismatch"* ]]
 echo "$verify"
 
 "$KNN_AUDIT" run --dataset "$DATASET" --engine reference --repeat 1 \
