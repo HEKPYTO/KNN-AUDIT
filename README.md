@@ -51,19 +51,11 @@ uv venv --python 3.12 .venv-faiss
 uv pip install --python .venv-faiss/bin/python -r scripts/requirements-faiss.txt
 
 sha=c0158e652bf8bcd4ad8a42aa8eb642325ca76897109431241ada0ac7490d4beb
-knn=./target/release/knn-audit
-"$knn" dataset verify --dataset .data/errpedia --all --k 10 --expect-sha256 "$sha"
-"$knn" run --dataset .data/errpedia --engine reference --repeat 3 --k 10 \
-  --expect-sha256 "$sha" --out /tmp/reference.json
-"$knn" run --dataset .data/errpedia --engine qdrant --repeat 10 --k 10 \
-  --expect-sha256 "$sha" --out /tmp/qdrant.json
-"$knn" run --dataset .data/errpedia --engine pgvector --repeat 3 --k 10 \
-  --expect-sha256 "$sha" --out /tmp/pgvector.json
-"$knn" run --dataset .data/errpedia --engine faiss --repeat 3 --k 10 \
-  --expect-sha256 "$sha" --faiss-python .venv-faiss/bin/python --out /tmp/faiss.json
-"$knn" publish --input /tmp/qdrant.json --out results/scorecards/qdrant-1.20.2-repeat10-a.json
-shasum -a 256 -c results/CHECKSUMS.txt
+./target/release/knn-audit dataset verify --dataset .data/errpedia --all --k 10 --expect-sha256 "$sha"
+KNN_AUDIT=./target/release/knn-audit DATASET=.data/errpedia FAISS_PYTHON=.venv-faiss/bin/python ./scripts/ci-audit.sh
 ```
+
+`shasum -a 256 -c results/CHECKSUMS.txt` verifies the committed artifacts, not a fresh sample.
 
 `--repeat N` performs N independent prepare+audit passes; CI uses `--repeat 10`
 for Qdrant and `--repeat 3` for reference, pgvector and FAISS. `--jobs N` caps
