@@ -1,0 +1,20 @@
+Engine spot-check — 2026-11-21
+
+Reviewer: independent agent, not the adapter author.
+Method: five failing and two passing cases per engine were queried directly
+against Qdrant REST and pgvector SQL, bypassing the Rust adapters. The adapter
+answers were compared with the direct answers at the same limit and with the
+exact ground-truth ids.
+
+Results:
+- Qdrant: 5/5 failing answers reproduced byte-identically outside the adapter;
+  2/2 passing answers equal the ground-truth set.
+- pgvector: 5/5 failing answers reproduced byte-identically outside the
+  adapter; 2/2 passing answers equal the ground-truth set.
+- Sampled mismatches are exact ties at ranks 10 and 11 under the engine's own
+  scores (for example two equal scores of 13393.025) while exact arithmetic
+  separates the distances.
+- Qdrant's tie pick changes with the requested limit, confirming arbitrary tie
+  order rather than an adapter parsing bug.
+
+Verdict: no adapter bug explains the reported mismatches.

@@ -1,0 +1,27 @@
+Kernel re-derivation — 2026-11-21
+
+Reviewer: independent agent, not the kernel author.
+Target: knn-audit 0.1.0 dyadic-rational squared L2 and exact top-k.
+Method: decimal literals -> fractions.Fraction -> independent binary32
+ties-to-even rounding -> integer-scaled dyadics (value x 2^149), so squared L2
+is an exact integer and ranking is (exact_distance, id) with no float in the
+ordering. Set-only results were recorded separately.
+
+Cases: 5,120 randomized (dims 1-128, subnormal, tiny, normal, huge, max,
+negative, negative zero, duplicates, collection sizes 12-32) + 1,600
+adversarial (exponent gaps, cancellation/absorption, overflow-adjacent values,
+exact ties, one-ulp near-ties, all-duplicate collections, k-boundary ties) +
+657 shipped absorb (150), neartie (405), overflow_inf (19), and
+collision_ladder (83) cases. Total 7,377.
+
+Results:
+- dataset verify --all: 0 mismatches on 6,720 generated + 657 real cases.
+- reference engine --repeat 3: 0 failures, 0 errors, 0 rank swaps on every
+  fixture, in all three repetitions.
+- Exact ties: smaller id first, every time.
+- Worst f64 screening relative error 8.61e-16 against the 4.55e-13 dim-128
+  bound, about 529x headroom. No screening exclusion observed.
+
+Counterexample: none.
+
+Verdict: PASS.
