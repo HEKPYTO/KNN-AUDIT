@@ -23,14 +23,8 @@ pub struct Report {
     pub summary: Summary,
     pub categories: Vec<CategorySummary>,
     pub failures: Vec<Failure>,
-    #[serde(default = "default_repeat")]
     pub repeat: usize,
-    #[serde(default)]
     pub runs: Vec<RunSummary>,
-}
-
-fn default_repeat() -> usize {
-    1
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -62,9 +56,7 @@ pub struct Summary {
     pub missing: usize,
     pub extra: usize,
     pub rank_swaps: usize,
-    #[serde(default)]
     pub unstable: usize,
-    #[serde(default)]
     pub failed_all: usize,
 }
 
@@ -80,7 +72,6 @@ pub struct CategorySummary {
 pub struct RunSummary {
     pub failed: usize,
     pub order_only: usize,
-    #[serde(default)]
     pub errors: usize,
     pub missing: usize,
     pub extra: usize,
@@ -101,11 +92,8 @@ pub struct Failure {
     pub rank_swaps: Vec<RankSwap>,
     pub distance_gap: Option<f64>,
     pub error: Option<String>,
-    #[serde(default)]
     pub failed_repetitions: Vec<usize>,
-    #[serde(default)]
     pub unstable: bool,
-    #[serde(default)]
     pub unstable_actual_ids: Vec<Vec<u64>>,
 }
 

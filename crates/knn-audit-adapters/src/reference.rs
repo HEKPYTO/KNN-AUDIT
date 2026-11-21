@@ -1,5 +1,7 @@
 use crate::exact::top_k_exact;
-use crate::{AdapterError, Caps, CollectionView, Engine, Hit, Metric};
+use crate::{
+    AdapterError, Caps, CollectionView, Engine, Hit, Metric, id_string, validate_collection,
+};
 use std::collections::BTreeMap;
 
 struct Collection {
@@ -47,18 +49,7 @@ impl Engine for ReferenceEngine {
     }
 
     fn prepare(&mut self, collection: &CollectionView<'_>) -> Result<(), AdapterError> {
-        if collection.dim == 0 {
-            return Err(AdapterError::new("collection dimension must be positive"));
-        }
-        if collection.vectors.len() != collection.ids.len() * collection.dim {
-            return Err(AdapterError::new(format!(
-                "collection has {} values, expected {} for {} vectors of dimension {}",
-                collection.vectors.len(),
-                collection.ids.len() * collection.dim,
-                collection.ids.len(),
-                collection.dim
-            )));
-        }
+        validate_collection(collection)?;
         self.collection = Some(Collection {
             dim: collection.dim,
             ids: collection.ids.to_vec(),
@@ -72,18 +63,11 @@ impl Engine for ReferenceEngine {
             .collection
             .as_ref()
             .ok_or_else(|| AdapterError::new("reference engine is not prepared"))?;
-        if query.len() != collection.dim {
-            return Err(AdapterError::new(format!(
-                "query dimension {} does not match collection dimension {}",
-                query.len(),
-                collection.dim
-            )));
-        }
-        let ids = top_k_exact(query, &collection.view(), k);
+        let ids = top_k_exact(query, &collection.view(), k)?;
         Ok(ids
             .into_iter()
             .map(|id| Hit {
-                id: id.to_string(),
+                id: id_string(id),
                 distance: None,
             })
             .collect())

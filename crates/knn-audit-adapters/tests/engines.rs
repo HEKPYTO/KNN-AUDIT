@@ -118,6 +118,20 @@ fn qdrant_unreachable_endpoint_is_an_adapter_error() {
 }
 
 #[test]
+fn qdrant_url_secrets_are_absent_from_errors() {
+    let secret = "s3cr3t-qdrant-key";
+    let url = format!("http://user:{secret}@127.0.0.1:1?api_key={secret}");
+    let mut engine = QdrantEngine::new(url, "audit_dead").expect("engine");
+    let view = CollectionView {
+        dim: 2,
+        ids: &[1],
+        vectors: &[0.0, 0.0],
+    };
+    let error = engine.prepare(&view).expect_err("unreachable qdrant");
+    assert!(!error.message.contains(secret), "{}", error.message);
+}
+
+#[test]
 fn qdrant_tie_heavy_prepare_keeps_the_same_id_set() {
     if !enabled() {
         return;

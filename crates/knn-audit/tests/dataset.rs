@@ -42,7 +42,6 @@ fn explicit_checksum_match_and_mismatch_are_reported() {
     assert_eq!(dataset.base_sha256, hash);
     let error = Dataset::load(MINI, Some("deadbeef")).expect_err("bad checksum");
     assert!(error.message.contains("sha256 mismatch"));
-    assert!(dataset.check_checksum(&hash).is_ok());
 }
 
 #[test]
@@ -80,6 +79,25 @@ fn verify_rejects_out_of_range_case_index() {
         .verify(&[dataset.cases.len()], 10)
         .expect_err("out of range index");
     assert!(error.message.contains("out of range"));
+}
+
+#[cfg(unix)]
+#[test]
+fn symlinked_json_is_not_loaded() {
+    use std::os::unix::fs::symlink;
+
+    let temp = tempfile::tempdir().expect("temp dataset");
+    let data = temp.path().join("data");
+    let group = data.join("g");
+    fs::create_dir_all(&group).expect("case group");
+    fs::write(data.join("base.csv"), "0,0\n1,0\n").expect("base.csv");
+    let outside = tempfile::tempdir().expect("outside");
+    let outside_case = outside.path().join("outside.json");
+    fs::write(&outside_case, valid_case("[0]")).expect("outside case");
+    symlink(&outside_case, group.join("linked.json")).expect("file symlink");
+    symlink(outside.path(), data.join("linked")).expect("directory symlink");
+    let error = Dataset::load(temp.path(), None).expect_err("symlinks skipped");
+    assert!(error.message.contains("no case files found"));
 }
 
 fn real_dataset() -> Option<PathBuf> {
@@ -120,7 +138,7 @@ fn real_absorb_001_matches_exact_kernel() {
         .find(|case| case.case_id == "absorb_001")
         .expect("absorb_001 case");
     let mut expected = case.gt_ids.clone();
-    let mut actual = top_k_exact(&case.query, &dataset.collection(), 10);
+    let mut actual = top_k_exact(&case.query, &dataset.collection(), 10).expect("exact top k");
     expected.sort_unstable();
     actual.sort_unstable();
     assert_eq!(actual, expected);

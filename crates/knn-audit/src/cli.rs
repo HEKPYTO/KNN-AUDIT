@@ -112,7 +112,7 @@ fn verify(
     k: usize,
     expect_sha256: Option<&str>,
 ) -> ExitCode {
-    let result = load(&dataset, expect_sha256);
+    let result = Dataset::load(&dataset, expect_sha256);
     let dataset = match result {
         Ok(dataset) => dataset,
         Err(error) => return error_exit(error),
@@ -167,20 +167,22 @@ fn run_command(args: RunArgs) -> ExitCode {
     if repeat == 0 {
         return error_exit("--repeat must be positive");
     }
-    let dataset = match load(&root, expect_sha256.as_deref()) {
+    let dataset = match Dataset::load(&root, expect_sha256.as_deref()) {
         Ok(dataset) => dataset,
         Err(error) => return error_exit(error),
     };
     let faiss_python = faiss_python.unwrap_or_else(|| {
         std::env::var("KNN_AUDIT_FAISS_PYTHON").unwrap_or_else(|_| "python3".to_string())
     });
-    let engine = match build_engine(
+    let engine = match EngineSpec::new(
         &engine_name,
         &engine_url,
         &database_url,
         &collection,
         &faiss_python,
-    ) {
+    )
+    .and_then(|spec| spec.build())
+    {
         Ok(engine) => engine,
         Err(error) => return error_exit(error),
     };
@@ -225,42 +227,61 @@ fn run_command(args: RunArgs) -> ExitCode {
     }
 }
 
-fn build_engine(
-    name: &str,
-    engine_url: &str,
-    database_url: &str,
-    collection: &str,
-    faiss_python: &str,
-) -> Result<Box<dyn Engine + Send + Sync>, String> {
-    match name {
-        "reference" => Ok(Box::new(ReferenceEngine::new())),
-        "qdrant" => QdrantEngine::new(engine_url, collection)
-            .map(|engine| Box::new(engine) as Box<dyn Engine + Send + Sync>)
-            .map_err(|error| format!("qdrant prepare failed: {error}")),
-        "pgvector" => PgVectorEngine::new(database_url, collection)
-            .map(|engine| Box::new(engine) as Box<dyn Engine + Send + Sync>)
-            .map_err(|error| format!("pgvector connection failed: {error}")),
-        "faiss" => FaissEngine::new(faiss_python)
-            .map(|engine| Box::new(engine) as Box<dyn Engine + Send + Sync>)
-            .map_err(|error| format!("faiss prepare failed: {error}")),
-        other => Err(format!(
-            "engine {other:?} is not available; available engines: reference, qdrant, pgvector, faiss"
-        )),
+enum EngineSpec {
+    Reference,
+    Qdrant { url: String, collection: String },
+    PgVector { url: String, collection: String },
+    Faiss { python: String },
+}
+
+impl EngineSpec {
+    fn new(
+        name: &str,
+        engine_url: &str,
+        database_url: &str,
+        collection: &str,
+        faiss_python: &str,
+    ) -> Result<Self, String> {
+        match name {
+            "reference" => Ok(Self::Reference),
+            "qdrant" => Ok(Self::Qdrant {
+                url: engine_url.to_string(),
+                collection: collection.to_string(),
+            }),
+            "pgvector" => Ok(Self::PgVector {
+                url: database_url.to_string(),
+                collection: collection.to_string(),
+            }),
+            "faiss" => Ok(Self::Faiss {
+                python: faiss_python.to_string(),
+            }),
+            other => Err(format!(
+                "engine {other:?} is not available; available engines: reference, qdrant, pgvector, faiss"
+            )),
+        }
+    }
+
+    fn build(&self) -> Result<Box<dyn Engine + Send + Sync>, String> {
+        match self {
+            Self::Reference => Ok(Box::new(ReferenceEngine::new())),
+            Self::Qdrant { url, collection } => QdrantEngine::new(url, collection)
+                .map(|engine| Box::new(engine) as Box<dyn Engine + Send + Sync>)
+                .map_err(|error| format!("qdrant engine failed: {error}")),
+            Self::PgVector { url, collection } => PgVectorEngine::new(url, collection)
+                .map(|engine| Box::new(engine) as Box<dyn Engine + Send + Sync>)
+                .map_err(|error| format!("pgvector engine failed: {error}")),
+            Self::Faiss { python } => FaissEngine::new(python)
+                .map(|engine| Box::new(engine) as Box<dyn Engine + Send + Sync>)
+                .map_err(|error| format!("faiss engine failed: {error}")),
+        }
     }
 }
 
 fn report_command(input: PathBuf, html: Option<PathBuf>) -> ExitCode {
-    let bytes = match fs::read(&input) {
-        Ok(bytes) => bytes,
-        Err(error) => return error_exit(format!("cannot read {}: {error}", input.display())),
-    };
-    let report: Report = match serde_json::from_slice(&bytes) {
+    let report = match read_report(&input) {
         Ok(report) => report,
-        Err(error) => return error_exit(format!("invalid report {}: {error}", input.display())),
+        Err(code) => return code,
     };
-    if report.schema != SCHEMA {
-        return error_exit(format!("unsupported report schema {}", report.schema));
-    }
     if let Some(html) = html {
         if let Err(error) = write_file(&html, &report.to_html()) {
             return error_exit(error);
@@ -275,17 +296,10 @@ fn report_command(input: PathBuf, html: Option<PathBuf>) -> ExitCode {
 }
 
 fn publish_command(input: PathBuf, out: PathBuf) -> ExitCode {
-    let bytes = match fs::read(&input) {
-        Ok(bytes) => bytes,
-        Err(error) => return error_exit(format!("cannot read {}: {error}", input.display())),
-    };
-    let report: Report = match serde_json::from_slice(&bytes) {
+    let report = match read_report(&input) {
         Ok(report) => report,
-        Err(error) => return error_exit(format!("invalid report {}: {error}", input.display())),
+        Err(code) => return code,
     };
-    if report.schema != SCHEMA {
-        return error_exit(format!("unsupported report schema {}", report.schema));
-    }
     let json = match report.publish() {
         Ok(json) => json,
         Err(error) => return error_exit(error),
@@ -297,8 +311,18 @@ fn publish_command(input: PathBuf, out: PathBuf) -> ExitCode {
     ExitCode::SUCCESS
 }
 
-fn load(root: &Path, expect_sha256: Option<&str>) -> Result<Dataset, crate::dataset::DatasetError> {
-    Dataset::load(root, expect_sha256)
+fn read_report(input: &Path) -> Result<Report, ExitCode> {
+    let bytes = fs::read(input)
+        .map_err(|error| error_exit(format!("cannot read {}: {error}", input.display())))?;
+    let report: Report = serde_json::from_slice(&bytes)
+        .map_err(|error| error_exit(format!("invalid report {}: {error}", input.display())))?;
+    if report.schema != SCHEMA {
+        return Err(error_exit(format!(
+            "unsupported report schema {}",
+            report.schema
+        )));
+    }
+    Ok(report)
 }
 
 fn write_file(path: &Path, contents: &str) -> std::io::Result<()> {

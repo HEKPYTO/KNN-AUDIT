@@ -86,9 +86,12 @@ impl Worker {
                 return Err(self.terminate("faiss worker closed unexpectedly"));
             }
         };
-        let response: Value = serde_json::from_str(&line).map_err(|error| {
-            AdapterError::new(format!("faiss worker response is not JSON: {error}"))
-        })?;
+        let response: Value = match serde_json::from_str(&line) {
+            Ok(response) => response,
+            Err(error) => {
+                return Err(self.terminate(format!("faiss worker response is not JSON: {error}")));
+            }
+        };
         if let Some(message) = response.get("error").and_then(Value::as_str) {
             return Err(AdapterError::new(message.to_string()));
         }
@@ -116,6 +119,7 @@ impl FaissEngine {
     pub fn new(python: impl AsRef<OsStr>) -> Result<Self, AdapterError> {
         let interpreter = python.as_ref().to_string_lossy().into_owned();
         let child = Command::new(python)
+            .arg("-P")
             .arg("-c")
             .arg(include_str!("../scripts/faiss_worker.py"))
             .stdin(Stdio::piped())
@@ -163,6 +167,8 @@ impl Engine for FaissEngine {
 
     fn prepare(&mut self, collection: &CollectionView<'_>) -> Result<(), AdapterError> {
         validate_collection(collection)?;
+        self.dim = None;
+        self.version = None;
         let version = self
             .send(&json!({ "op": "version" }))?
             .get("version")
