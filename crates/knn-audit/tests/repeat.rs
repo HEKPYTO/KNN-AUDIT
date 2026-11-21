@@ -4,15 +4,25 @@ use knn_audit::run::{RunOptions, run};
 use std::sync::Mutex;
 
 const MINI: &str = concat!(env!("CARGO_MANIFEST_DIR"), "/../../fixtures/mini");
+const CORRECT: [u64; 10] = [10, 11, 9, 12, 8, 13, 7, 14, 6, 15];
 
-#[derive(Default)]
-struct FlakyEngine {
-    calls: Mutex<usize>,
+struct EpochEngine {
+    epoch: Mutex<usize>,
+    answers: Vec<Vec<u64>>,
 }
 
-impl Engine for FlakyEngine {
+impl EpochEngine {
+    fn new(answers: Vec<Vec<u64>>) -> Self {
+        Self {
+            epoch: Mutex::new(0),
+            answers,
+        }
+    }
+}
+
+impl Engine for EpochEngine {
     fn name(&self) -> &'static str {
-        "flaky"
+        "epoch"
     }
 
     fn version(&self) -> String {
@@ -20,20 +30,18 @@ impl Engine for FlakyEngine {
     }
 
     fn prepare(&mut self, _collection: &CollectionView<'_>) -> Result<(), AdapterError> {
+        let mut epoch = self.epoch.lock().expect("epoch counter");
+        *epoch += 1;
         Ok(())
     }
 
-    fn search(&self, _query: &[f32], k: usize) -> Result<Vec<Hit>, AdapterError> {
-        let mut calls = self.calls.lock().expect("call counter");
-        let base = if (*calls).is_multiple_of(2) {
-            90_000
-        } else {
-            91_000
-        };
-        *calls += 1;
-        Ok((0..k)
-            .map(|offset| Hit {
-                id: (base + offset as u64).to_string(),
+    fn search(&self, _query: &[f32], _k: usize) -> Result<Vec<Hit>, AdapterError> {
+        let epoch = *self.epoch.lock().expect("epoch counter");
+        let ids = &self.answers[(epoch - 1).min(self.answers.len() - 1)];
+        Ok(ids
+            .iter()
+            .map(|id| Hit {
+                id: id.to_string(),
                 distance: None,
             })
             .collect())
@@ -48,41 +56,99 @@ impl Engine for FlakyEngine {
     }
 }
 
-#[test]
-fn repeats_report_unstable_answers_and_keep_distinct_sets() {
+fn audit(answers: Vec<Vec<u64>>, repeat: usize) -> knn_audit::report::Report {
     let dataset = Dataset::load(MINI).expect("mini fixture");
-    let result = run(RunOptions {
+    run(RunOptions {
         dataset,
-        engine: Box::new(FlakyEngine::default()),
+        engine: Box::new(EpochEngine::new(answers)),
         k: 10,
         limit: Some(1),
-        repeat: 2,
+        repeat,
     })
-    .expect("run");
-    assert_eq!(result.report.summary.unstable, 1);
-    assert_eq!(result.report.failures.len(), 1);
-    let failure = &result.report.failures[0];
-    assert!(failure.unstable);
-    assert_eq!(failure.unstable_actual_ids.len(), 2);
-    assert_eq!(failure.unstable_actual_ids[0][0], 90_000);
-    assert_eq!(failure.unstable_actual_ids[1][0], 91_000);
+    .expect("run")
+    .report
 }
 
 #[test]
-fn single_search_keeps_existing_report_shape() {
-    let dataset = Dataset::load(MINI).expect("mini fixture");
-    let result = run(RunOptions {
-        dataset,
-        engine: Box::new(FlakyEngine::default()),
-        k: 10,
-        limit: Some(1),
-        repeat: 1,
-    })
-    .expect("run");
-    assert_eq!(result.report.summary.unstable, 0);
-    assert_eq!(result.report.failures.len(), 1);
-    let failure = &result.report.failures[0];
+fn independent_audits_report_any_all_and_unstable() {
+    let report = audit(
+        vec![
+            vec![90_001, 90_002, 90_003],
+            vec![90_003, 90_002, 90_001],
+            vec![90_001, 90_002, 90_004],
+        ],
+        3,
+    );
+    assert_eq!(report.repeat, 3);
+    assert_eq!(report.summary.cases, 1);
+    assert_eq!(report.summary.failed, 1);
+    assert_eq!(report.summary.failed_all, 1);
+    assert_eq!(report.summary.unstable, 1);
+    assert_eq!(report.runs.len(), 3);
+    assert!(
+        report.runs.iter().all(|item| item.failed == 1
+            && item.missing > 0
+            && item.extra > 0
+            && item.unstable == 1)
+    );
+    let failure = &report.failures[0];
+    assert_eq!(failure.failed_repetitions, vec![1, 2, 3]);
+    assert!(failure.unstable);
+    assert_eq!(failure.unstable_actual_ids.len(), 2);
+    let mut first = failure.unstable_actual_ids[0].clone();
+    let mut second = failure.unstable_actual_ids[1].clone();
+    let mut same_as_first = vec![90_003, 90_002, 90_001];
+    first.sort_unstable();
+    second.sort_unstable();
+    same_as_first.sort_unstable();
+    assert_eq!(first, same_as_first);
+    assert_ne!(first, second);
+}
+
+#[test]
+fn rank_swap_only_is_not_unstable() {
+    let report = audit(
+        vec![
+            vec![11, 10, 9, 12, 8, 13, 7, 14, 6, 15],
+            vec![10, 11, 12, 9, 8, 13, 7, 14, 6, 15],
+        ],
+        2,
+    );
+    assert_eq!(report.summary.failed_all, 1);
+    assert_eq!(report.summary.unstable, 0);
+    assert!(
+        report
+            .runs
+            .iter()
+            .all(|item| item.rank_swaps > 0 && item.missing == 0 && item.extra == 0)
+    );
+    let failure = &report.failures[0];
     assert!(!failure.unstable);
     assert!(failure.unstable_actual_ids.is_empty());
-    assert_eq!(failure.actual_ids[0], 90_000);
+    assert_eq!(failure.failed_repetitions, vec![1, 2]);
+}
+
+#[test]
+fn a_failure_in_one_repetition_is_not_failed_all() {
+    let report = audit(vec![CORRECT.to_vec(), vec![90_001]], 2);
+    assert_eq!(report.summary.failed, 1);
+    assert_eq!(report.summary.failed_all, 0);
+    assert_eq!(report.summary.unstable, 1);
+    assert_eq!(report.runs.len(), 2);
+    assert_eq!(report.failures[0].failed_repetitions, vec![2]);
+    let missing = report.summary.missing;
+    let extra = report.summary.extra;
+    assert!(missing > 0 && extra > 0);
+}
+
+#[test]
+fn single_audit_keeps_existing_counts() {
+    let report = audit(vec![vec![90_001]], 1);
+    assert_eq!(report.repeat, 1);
+    assert_eq!(report.summary.failed, 1);
+    assert_eq!(report.summary.failed_all, 1);
+    assert_eq!(report.summary.unstable, 0);
+    assert_eq!(report.runs.len(), 1);
+    assert_eq!(report.failures[0].failed_repetitions, vec![1]);
+    assert!(report.failures[0].unstable_actual_ids.is_empty());
 }

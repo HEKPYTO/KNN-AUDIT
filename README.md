@@ -44,8 +44,8 @@ git clone --depth 1 https://github.com/dynos01/errpedia .data/errpedia
 
 `qdrant` defaults to `http://127.0.0.1:6333`; both engines default to the
 `errpedia_audit` collection. Override with `--engine-url`, `--database-url`
-and `--collection`. Use `--repeat N` to measure answer stability; the report
-adds `summary.unstable` and per-failure distinct actual sets.
+and `--collection`. Use `--repeat N` for N independent prepare+audit runs; the
+report adds per-run counts, `failed_all`, and `unstable` id-set changes.
 
 ## Commands
 

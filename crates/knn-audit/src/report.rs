@@ -15,6 +15,14 @@ pub struct Report {
     pub summary: Summary,
     pub categories: Vec<CategorySummary>,
     pub failures: Vec<Failure>,
+    #[serde(default = "default_repeat")]
+    pub repeat: usize,
+    #[serde(default)]
+    pub runs: Vec<RunSummary>,
+}
+
+fn default_repeat() -> usize {
+    1
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -46,6 +54,8 @@ pub struct Summary {
     pub rank_swaps: usize,
     #[serde(default)]
     pub unstable: usize,
+    #[serde(default)]
+    pub failed_all: usize,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -53,6 +63,15 @@ pub struct CategorySummary {
     pub category: String,
     pub cases: usize,
     pub failed: usize,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RunSummary {
+    pub failed: usize,
+    pub missing: usize,
+    pub extra: usize,
+    pub rank_swaps: usize,
+    pub unstable: usize,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -67,6 +86,8 @@ pub struct Failure {
     pub rank_swaps: Vec<RankSwap>,
     pub distance_gap: Option<f64>,
     pub error: Option<String>,
+    #[serde(default)]
+    pub failed_repetitions: Vec<usize>,
     #[serde(default)]
     pub unstable: bool,
     #[serde(default)]
@@ -91,11 +112,12 @@ impl Report {
         html.push_str("code{word-break:break-all}li{margin:.4rem 0}</style></head><body>");
         let _ = write!(
             html,
-            "<h1>knn-audit scorecard</h1><p>{} {} &middot; {} &middot; k={}</p>",
+            "<h1>knn-audit scorecard</h1><p>{} {} &middot; {} &middot; k={} &middot; repeat {}</p>",
             escape(&self.engine.name),
             escape(&self.engine.version),
             escape(&self.dataset.root),
-            self.k
+            self.k,
+            self.repeat
         );
         let _ = write!(
             html,
@@ -105,17 +127,34 @@ impl Report {
         );
         let _ = write!(
             html,
-            "<table><tr><th>cases</th><th>passed</th><th>failed</th><th>errors</th><th>missing</th><th>extra</th><th>rank swaps</th><th>unstable</th></tr>\
-             <tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr></table>",
+            "<table><tr><th>cases</th><th>passed</th><th>failed any</th><th>failed all</th><th>errors</th><th>missing</th><th>extra</th><th>rank swaps</th><th>unstable</th></tr>\
+             <tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr></table>",
             self.summary.cases,
             self.summary.passed,
             self.summary.failed,
+            self.summary.failed_all,
             self.summary.errors,
             self.summary.missing,
             self.summary.extra,
             self.summary.rank_swaps,
             self.summary.unstable
         );
+        if !self.runs.is_empty() {
+            html.push_str("<h2>Runs</h2><table><tr><th>run</th><th>failed</th><th>missing</th><th>extra</th><th>rank swaps</th><th>unstable</th></tr>");
+            for (index, item) in self.runs.iter().enumerate() {
+                let _ = write!(
+                    html,
+                    "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>",
+                    index + 1,
+                    item.failed,
+                    item.missing,
+                    item.extra,
+                    item.rank_swaps,
+                    item.unstable
+                );
+            }
+            html.push_str("</table>");
+        }
         html.push_str(
             "<h2>Categories</h2><table><tr><th>category</th><th>cases</th><th>failed</th></tr>",
         );
@@ -150,6 +189,13 @@ impl Report {
                     escape(&format!("{:?}", failure.expected_ids)),
                     escape(&format!("{:?}", failure.actual_ids))
                 );
+                if !failure.failed_repetitions.is_empty() {
+                    let _ = write!(
+                        html,
+                        "<br>failed repetitions: <code>{:?}</code>",
+                        failure.failed_repetitions
+                    );
+                }
                 if !failure.missing_ids.is_empty() {
                     let _ = write!(
                         html,
