@@ -118,3 +118,46 @@ fn top_k_reports_query_and_collection_shape_errors() {
     .expect_err("shape mismatch");
     assert!(shape_error.message.contains("collection size mismatch"));
 }
+
+#[test]
+fn top_k_matches_brute_force_exact_distances() {
+    let mut state = 0x9e37_79b9_7f4a_7c15_u64;
+    let ids: Vec<u64> = (0..32).collect();
+    for case in 0..50 {
+        let mut query = [0.0_f32; 8];
+        let mut vectors = vec![0.0_f32; ids.len() * 8];
+        let mut next = || {
+            state = state
+                .wrapping_mul(6364136223846793005)
+                .wrapping_add(1442695040888963407);
+            ((state >> 33) as i64) as f32 / i32::MAX as f32
+        };
+        for value in &mut query {
+            *value = next();
+        }
+        for value in &mut vectors {
+            *value = next();
+        }
+        let collection = CollectionView {
+            dim: 8,
+            ids: &ids,
+            vectors: &vectors,
+        };
+        let k = 1 + case % 10;
+        let mut ranked: Vec<_> = (0..ids.len())
+            .map(|index| {
+                (
+                    squared_l2_exact(&query, collection.vector(index)),
+                    ids[index],
+                )
+            })
+            .collect();
+        ranked.sort_by(|left, right| left.0.cmp(&right.0).then_with(|| left.1.cmp(&right.1)));
+        let expected: Vec<u64> = ranked.into_iter().take(k).map(|(_, id)| id).collect();
+        assert_eq!(
+            top_k_exact(&query, &collection, k).expect("top k"),
+            expected,
+            "case {case}"
+        );
+    }
+}
