@@ -80,8 +80,9 @@ Measured 2026-11-21 on the pinned dataset with exact/brute-force mode:
 | pgvector | 0.8.7 | 542 | 542 | 4 | 0 | 0 |
 | FAISS | 1.12.0 | 541 | 541 | 4 | 0 | 31 |
 
-Qdrant also blocked 928-929 distinct queries per 10-reload group. Its tie order
-is not contractual, so the score is a range over four committed groups; see
+Qdrant blocked 928-929 distinct queries in each of four committed 10-reload
+groups; a GitHub CI sample from the same pins observed 889. Its tie order is
+not contractual, so the score is a range over four committed groups; see
 [`results/README.md`](results/README.md) for the claim ladder, disclosure
 status, limits and artifact links.
 
