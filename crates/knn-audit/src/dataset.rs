@@ -6,9 +6,6 @@ use std::fmt;
 use std::fs;
 use std::path::{Path, PathBuf};
 
-pub const EXPECTED_BASE_SHA256: &str =
-    "c0158e652bf8bcd4ad8a42aa8eb642325ca76897109431241ada0ac7490d4beb";
-
 #[derive(Debug)]
 pub struct DatasetError {
     pub message: String,
@@ -34,7 +31,7 @@ impl std::error::Error for DatasetError {}
 pub struct Case {
     pub case_id: String,
     pub category: String,
-    pub query_row: u64,
+
     pub query: Vec<f32>,
     pub gt_ids: Vec<u64>,
 }
@@ -66,7 +63,10 @@ struct CaseJson {
 }
 
 impl Dataset {
-    pub fn load(root: impl AsRef<Path>) -> Result<Self, DatasetError> {
+    pub fn load(
+        root: impl AsRef<Path>,
+        expected_sha256: Option<&str>,
+    ) -> Result<Self, DatasetError> {
         let root = root.as_ref();
         let data_dir = root.join("data");
         let base_path = data_dir.join("base.csv");
@@ -74,6 +74,9 @@ impl Dataset {
             DatasetError::new(format!("cannot read {}: {error}", base_path.display()))
         })?;
         let base_sha256 = digest_hex(&bytes);
+        if let Some(expected) = expected_sha256 {
+            check_digest(&base_sha256, expected)?;
+        }
         let text = std::str::from_utf8(&bytes)
             .map_err(|error| DatasetError::new(format!("base.csv is not UTF-8: {error}")))?;
         let mut vectors = Vec::new();
@@ -162,7 +165,7 @@ impl Dataset {
             cases.push(Case {
                 case_id: raw.case_id,
                 category: raw.category,
-                query_row: raw.query_row,
+
                 query: raw.query,
                 gt_ids: raw.gt_ids,
             });
@@ -192,18 +195,7 @@ impl Dataset {
     }
 
     pub fn check_checksum(&self, expected: &str) -> Result<(), DatasetError> {
-        if self.base_sha256.eq_ignore_ascii_case(expected) {
-            Ok(())
-        } else {
-            Err(DatasetError::new(format!(
-                "base.csv sha256 mismatch: expected {expected}, found {}",
-                self.base_sha256
-            )))
-        }
-    }
-
-    pub fn is_shipped(&self) -> bool {
-        self.base_rows == 22_501 && self.dim == 128 && self.cases.len() == 1_616
+        check_digest(&self.base_sha256, expected)
     }
 
     pub fn expected_ids(&self, case: &Case, k: usize) -> Result<Vec<u64>, DatasetError> {
@@ -245,6 +237,15 @@ impl Dataset {
     }
 }
 
+fn check_digest(computed: &str, expected: &str) -> Result<(), DatasetError> {
+    if computed.eq_ignore_ascii_case(expected) {
+        Ok(())
+    } else {
+        Err(DatasetError::new(format!(
+            "base.csv sha256 mismatch: expected {expected}, found {computed}"
+        )))
+    }
+}
 fn digest_hex(bytes: &[u8]) -> String {
     Sha256::digest(bytes)
         .iter()

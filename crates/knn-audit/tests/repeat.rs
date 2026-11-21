@@ -1,4 +1,5 @@
 use knn_audit::adapters::{AdapterError, Caps, CollectionView, Engine, Hit, Metric};
+use knn_audit::compare::Severity;
 use knn_audit::dataset::Dataset;
 use knn_audit::run::{RunOptions, run};
 use std::sync::Mutex;
@@ -115,14 +116,73 @@ impl Engine for BadIdEngine {
     }
 }
 
+struct SecondPrepareEngine {
+    preparations: Mutex<usize>,
+}
+
+impl SecondPrepareEngine {
+    fn new() -> Self {
+        Self {
+            preparations: Mutex::new(0),
+        }
+    }
+}
+
+impl Engine for SecondPrepareEngine {
+    fn name(&self) -> &'static str {
+        "second-prepare"
+    }
+
+    fn version(&self) -> String {
+        "test".to_string()
+    }
+
+    fn prepare(&mut self, _collection: &CollectionView<'_>) -> Result<(), AdapterError> {
+        let mut count = self.preparations.lock().expect("prepare counter");
+        *count += 1;
+        if *count == 2 {
+            Err(AdapterError::new("prepare broken"))
+        } else {
+            Ok(())
+        }
+    }
+
+    fn search(&self, _query: &[f32], _k: usize) -> Result<Vec<Hit>, AdapterError> {
+        Ok(CORRECT
+            .iter()
+            .map(|id| Hit {
+                id: id.to_string(),
+                distance: None,
+            })
+            .collect())
+    }
+
+    fn capabilities(&self) -> Caps {
+        Caps {
+            exact_mode: true,
+            distance_metric: Metric::SquaredL2,
+            supports_ids: true,
+        }
+    }
+}
+
 fn audit(answers: Vec<Vec<u64>>, repeat: usize) -> knn_audit::report::Report {
-    let dataset = Dataset::load(MINI).expect("mini fixture");
+    audit_with_jobs(answers, repeat, None)
+}
+
+fn audit_with_jobs(
+    answers: Vec<Vec<u64>>,
+    repeat: usize,
+    jobs: Option<usize>,
+) -> knn_audit::report::Report {
+    let dataset = Dataset::load(MINI, None).expect("mini fixture");
     run(RunOptions {
         dataset,
         engine: Box::new(EpochEngine::new(answers)),
         k: 10,
         limit: Some(1),
         repeat,
+        jobs,
     })
     .expect("run")
     .report
@@ -141,6 +201,7 @@ fn independent_audits_report_any_all_and_unstable() {
     assert_eq!(report.repeat, 3);
     assert_eq!(report.summary.cases, 1);
     assert_eq!(report.summary.failed, 1);
+    assert_eq!(report.summary.order_only, 0);
     assert_eq!(report.summary.failed_all, 1);
     assert_eq!(report.summary.unstable, 1);
     assert_eq!(report.runs.len(), 3);
@@ -151,6 +212,7 @@ fn independent_audits_report_any_all_and_unstable() {
             .all(|item| item.failed == 1 && item.missing > 0 && item.extra > 0)
     );
     let failure = &report.failures[0];
+    assert_eq!(failure.severity, Severity::Mismatch);
     assert_eq!(failure.failed_repetitions, vec![1, 2, 3]);
     assert!(failure.unstable);
     assert_eq!(failure.unstable_actual_ids.len(), 2);
@@ -165,7 +227,7 @@ fn independent_audits_report_any_all_and_unstable() {
 }
 
 #[test]
-fn rank_swap_only_is_not_unstable() {
+fn rank_swap_only_is_order_only_and_not_unstable() {
     let report = audit(
         vec![
             vec![11, 10, 9, 12, 8, 13, 7, 14, 6, 15],
@@ -173,18 +235,22 @@ fn rank_swap_only_is_not_unstable() {
         ],
         2,
     );
-    assert_eq!(report.summary.failed_all, 1);
+    assert_eq!(report.summary.failed, 0);
+    assert_eq!(report.summary.order_only, 1);
+    assert_eq!(report.summary.passed, 0);
+    assert_eq!(report.summary.failed_all, 0);
     assert_eq!(report.summary.unstable, 0);
     assert!(
         report
             .runs
             .iter()
-            .all(|item| item.rank_swaps > 0 && item.missing == 0 && item.extra == 0)
+            .all(|item| item.order_only == 1 && item.failed == 0 && item.missing == 0)
     );
     let failure = &report.failures[0];
+    assert_eq!(failure.severity, Severity::OrderOnly);
     assert!(!failure.unstable);
     assert!(failure.unstable_actual_ids.is_empty());
-    assert_eq!(failure.failed_repetitions, vec![1, 2]);
+    assert!(failure.failed_repetitions.is_empty());
 }
 
 #[test]
@@ -213,22 +279,56 @@ fn single_audit_keeps_existing_counts() {
 }
 
 #[test]
+fn prepare_failure_in_second_repetition_aborts_the_run() {
+    let dataset = Dataset::load(MINI, None).expect("mini fixture");
+    let error = match run(RunOptions {
+        dataset,
+        engine: Box::new(SecondPrepareEngine::new()),
+        k: 10,
+        limit: Some(1),
+        repeat: 2,
+        jobs: Some(2),
+    }) {
+        Ok(_) => panic!("prepare failure"),
+        Err(error) => error,
+    };
+    assert!(error.message.contains("second-prepare prepare failed"));
+    assert!(error.message.contains("prepare broken"));
+}
+
+#[test]
+fn local_jobs_do_not_change_the_report() {
+    let answers = vec![vec![90_001], vec![90_001]];
+    let one = audit_with_jobs(answers.clone(), 2, Some(1));
+    let two = audit_with_jobs(answers, 2, Some(2));
+    let mut one = serde_json::to_value(&one).expect("one report");
+    let mut two = serde_json::to_value(&two).expect("two report");
+    one.as_object_mut().expect("object").remove("created_at");
+    two.as_object_mut().expect("object").remove("created_at");
+    assert_eq!(one, two);
+}
+
+#[test]
 fn adapter_error_counts_every_expected_id_as_missing() {
-    let dataset = Dataset::load(MINI).expect("mini fixture");
+    let dataset = Dataset::load(MINI, None).expect("mini fixture");
     let result = run(RunOptions {
         dataset,
         engine: Box::new(ErrorEngine),
         k: 10,
         limit: Some(1),
         repeat: 1,
+        jobs: None,
     })
     .expect("run");
+    assert_eq!(result.report.summary.failed, 1);
     assert_eq!(result.report.summary.errors, 1);
     assert_eq!(result.report.summary.missing, CORRECT.len());
     assert_eq!(result.report.summary.extra, 0);
     assert_eq!(result.report.runs.len(), 1);
+    assert_eq!(result.report.runs[0].failed, 1);
     assert_eq!(result.report.runs[0].errors, 1);
     assert_eq!(result.report.runs[0].missing, CORRECT.len());
+    assert_eq!(result.report.failures[0].severity, Severity::Error);
     assert_eq!(
         result.report.failures[0].error.as_deref(),
         Some("engine failed")
@@ -238,23 +338,25 @@ fn adapter_error_counts_every_expected_id_as_missing() {
         result
             .report
             .to_html()
-            .contains("<th>run</th><th>failed</th><th>errors</th>")
+            .contains("<th>run</th><th>blocked</th>")
     );
 }
 
 #[test]
 fn non_numeric_id_counts_every_expected_id_as_missing() {
-    let dataset = Dataset::load(MINI).expect("mini fixture");
+    let dataset = Dataset::load(MINI, None).expect("mini fixture");
     let result = run(RunOptions {
         dataset,
         engine: Box::new(BadIdEngine),
         k: 10,
         limit: Some(1),
         repeat: 1,
+        jobs: None,
     })
     .expect("run");
     assert_eq!(result.report.summary.errors, 1);
     assert_eq!(result.report.summary.missing, CORRECT.len());
+    assert_eq!(result.report.failures[0].severity, Severity::Error);
     assert_eq!(result.report.failures[0].missing_ids.len(), CORRECT.len());
     assert!(
         result.report.failures[0]

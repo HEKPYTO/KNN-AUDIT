@@ -39,6 +39,60 @@ fn dataset_verify_all_exits_clean() {
 }
 
 #[test]
+fn explicit_checksum_verification_controls_exit_code() {
+    let hash = Dataset::load(MINI, None).expect("mini fixture").base_sha256;
+    let matching = command()
+        .args([
+            "dataset",
+            "verify",
+            "--dataset",
+            MINI,
+            "--all",
+            "--expect-sha256",
+            &hash,
+        ])
+        .output()
+        .expect("verify with hash");
+    assert!(matching.status.success(), "{}", stdout(&matching));
+    let mismatching = command()
+        .args([
+            "dataset",
+            "verify",
+            "--dataset",
+            MINI,
+            "--all",
+            "--expect-sha256",
+            "deadbeef",
+        ])
+        .output()
+        .expect("verify with bad hash");
+    assert_eq!(mismatching.status.code(), Some(2));
+    let stderr = String::from_utf8(mismatching.stderr).expect("utf8 stderr");
+    assert!(stderr.contains("sha256 mismatch"));
+}
+
+#[test]
+fn run_rejects_wrong_explicit_checksum() {
+    let temp = tempfile::tempdir().expect("temp output");
+    let output = command()
+        .args([
+            "run",
+            "--dataset",
+            MINI,
+            "--engine",
+            "reference",
+            "--expect-sha256",
+            "deadbeef",
+            "--out",
+            temp.path().join("report.json").to_str().expect("out"),
+        ])
+        .output()
+        .expect("run with bad hash");
+    assert_eq!(output.status.code(), Some(2));
+    let stderr = String::from_utf8(output.stderr).expect("utf8 stderr");
+    assert!(stderr.contains("sha256 mismatch"));
+}
+#[test]
 fn conflicting_sample_flags_are_usage_errors() {
     let output = command()
         .args([
@@ -78,7 +132,7 @@ fn reference_run_writes_report_and_html() {
         .expect("run command");
     assert!(output.status.success(), "{}", stdout(&output));
     let text = stdout(&output);
-    assert!(text.contains("0/8 cases mismatch"), "{text}");
+    assert!(text.contains("0/8 cases blocked"), "{text}");
     let report: Value =
         serde_json::from_slice(&fs::read(&json).expect("report json")).expect("parse report");
     assert_eq!(report["schema"], "knn-audit/v1");
@@ -113,7 +167,7 @@ fn reference_run_handles_ties_and_extreme_values() {
         .output()
         .expect("ties run");
     assert!(output.status.success(), "{}", stdout(&output));
-    assert!(stdout(&output).contains("0/4 cases mismatch"));
+    assert!(stdout(&output).contains("0/4 cases blocked"));
 }
 
 #[test]
@@ -211,10 +265,40 @@ fn repeat_summary_line_reports_any_and_every_run() {
         .expect("repeat audit");
     assert_eq!(output.status.code(), Some(0));
     let stdout = String::from_utf8(output.stdout).expect("utf8 stdout");
-    assert!(stdout.contains("reference 0.1.0 (repeat 2): 0/8 cases mismatch any"));
-    assert!(
-        stdout.contains("0 in every run, 0 unstable; 0 errors; 0 missing, 0 extra, 0 rank swaps")
-    );
+    assert!(stdout.contains("reference 0.1.0 (repeat 2): 0/8 cases blocked"));
+    assert!(stdout.contains(
+        "0 in every run, 0 order-only, 0 unstable; 0 errors; 0 missing, 0 extra, 0 rank swaps"
+    ));
+}
+
+#[test]
+fn local_jobs_produce_the_same_report() {
+    let temp = tempfile::tempdir().expect("temp output");
+    let mut reports = Vec::new();
+    for (jobs, name) in [("1", "one.json"), ("2", "two.json")] {
+        let out = temp.path().join(name);
+        command()
+            .args([
+                "run",
+                "--dataset",
+                MINI,
+                "--engine",
+                "reference",
+                "--repeat",
+                "2",
+                "--jobs",
+                jobs,
+                "--out",
+                out.to_str().expect("out"),
+            ])
+            .assert()
+            .success();
+        let mut report: Value =
+            serde_json::from_slice(&fs::read(&out).expect("report")).expect("parse report");
+        report.as_object_mut().expect("object").remove("created_at");
+        reports.push(report);
+    }
+    assert_eq!(reports[0], reports[1]);
 }
 
 #[test]
@@ -303,6 +387,7 @@ fn report_command_rejects_unknown_schema() {
     assert_eq!(output.status.code(), Some(2));
 }
 
+const PINNED_BASE_SHA256: &str = "c0158e652bf8bcd4ad8a42aa8eb642325ca76897109431241ada0ac7490d4beb";
 const SECRET_ROOT: &str = "/private/tmp/errpedia-secret-dataset";
 
 fn publish_report() -> Value {
@@ -321,7 +406,7 @@ fn publish_report() -> Value {
             "version": "0.1.0",
             "exact_mode": true,
             "metric": "squared_l2",
-            "config_redacted": {
+            "config": {
                 "kernel": "dyadic-rational",
                 "screening": "certified-f64",
                 "tie_break": "smaller-id"
@@ -329,42 +414,42 @@ fn publish_report() -> Value {
         },
         "k": 2,
         "repeat": 2,
-        "runs": [{"failed": 3, "errors": 0, "missing": 3, "extra": 2, "rank_swaps": 1}],
+        "runs": [{"failed": 3, "order_only": 0, "errors": 0, "missing": 3, "extra": 2, "rank_swaps": 1}],
         "summary": {
-            "cases": 3, "passed": 0, "failed": 3, "errors": 0,
+            "cases": 3, "passed": 0, "failed": 3, "order_only": 0, "errors": 0,
             "missing": 3, "extra": 2, "rank_swaps": 1, "unstable": 1, "failed_all": 2
         },
         "categories": [
-            {"category": "zzz", "cases": 1, "failed": 1},
-            {"category": "aaa", "cases": 2, "failed": 2}
+            {"category": "zzz", "cases": 1, "failed": 1, "order_only": 0},
+            {"category": "aaa", "cases": 2, "failed": 2, "order_only": 0}
         ],
         "failures": [
             {
                 "case_id": "case-b", "category": "aaa",
-                "query": [0.1, 0.2, 0.3, 0.4],
+                "query": [0.1, 0.2, 0.3, 0.4], "severity": "mismatch",
                 "expected_ids": [7, 8], "actual_ids": [7, 9],
                 "missing_ids": [8], "extra_ids": [9],
                 "rank_swaps": [{"id": 7, "expected_rank": 1, "actual_rank": 2}],
                 "distance_gap": 0.125, "error": null,
-                "failed_repetitions": [0, 1], "unstable": true,
+                "failed_repetitions": [1, 2], "unstable": true,
                 "unstable_actual_ids": [[7, 9], [9, 7]]
             },
             {
                 "case_id": "case-a", "category": "zzz",
-                "query": [1.0, 0.0, 0.0, 0.0],
+                "query": [1.0, 0.0, 0.0, 0.0], "severity": "error",
                 "expected_ids": [1, 2], "actual_ids": [1, 3],
                 "missing_ids": [2], "extra_ids": [3],
                 "rank_swaps": [], "distance_gap": null,
-                "error": "timeout", "failed_repetitions": [1], "unstable": false,
+                "error": "timeout", "failed_repetitions": [2], "unstable": false,
                 "unstable_actual_ids": []
             },
             {
                 "case_id": "case-a", "category": "aaa",
-                "query": [0.0, 1.0, 0.0, 0.0],
+                "query": [0.0, 1.0, 0.0, 0.0], "severity": "mismatch",
                 "expected_ids": [4, 5], "actual_ids": [4, 6],
                 "missing_ids": [5], "extra_ids": [6],
                 "rank_swaps": [], "distance_gap": null, "error": null,
-                "failed_repetitions": [], "unstable": false, "unstable_actual_ids": []
+                "failed_repetitions": [1], "unstable": false, "unstable_actual_ids": []
             }
         ]
     })
@@ -420,8 +505,7 @@ fn publish_writes_redacted_deterministic_scorecard() {
     assert_eq!(scorecard["dataset"]["dim"], 4);
     assert_eq!(scorecard["engine"]["name"], "reference");
     assert_eq!(scorecard["engine"]["metric"], "squared_l2");
-    assert_eq!(scorecard["tool"]["name"], "knn-audit");
-    assert_eq!(scorecard["tool"]["version"], env!("CARGO_PKG_VERSION"));
+    assert_eq!(scorecard["summary"]["order_only"], 0);
     assert_eq!(
         scorecard["engine"]["config"],
         serde_json::json!({
@@ -449,17 +533,15 @@ fn publish_writes_redacted_deterministic_scorecard() {
     let mut keys = Vec::new();
     let mut strings = Vec::new();
     collect(&scorecard, &mut keys, &mut strings);
-    assert!(
-        !keys
-            .iter()
-            .any(|key| key == "query" || key == "root" || key == "config_redacted")
-    );
+    assert!(!keys.iter().any(|key| {
+        key == "query" || key == "root" || key == "config_redacted" || key == "created_at"
+    }));
     assert!(
         scorecard["failures"]
             .as_array()
             .expect("failures")
             .iter()
-            .all(|failure| failure.get("unstable").is_none())
+            .all(|failure| failure["unstable"].is_boolean())
     );
     assert!(
         !strings
@@ -530,17 +612,17 @@ fn rank_swap_only_does_not_fail_with_flag() {
     assert_eq!(output.status.code(), Some(0), "{}", stdout(&output));
     let text = stdout(&output);
     assert!(
-        text.contains(
-            "1/1 cases mismatch any (1 in every run, 0 unstable; 0 errors; 0 missing, 0 extra, 2 rank swaps)"
-        ),
+        text.contains("0/1 cases blocked (0 in every run, 1 order-only, 0 unstable; 0 errors; 0 missing, 0 extra, 2 rank swaps)"),
         "{text}"
     );
     let report: Value =
         serde_json::from_slice(&fs::read(&out).expect("report")).expect("parse report");
-    assert_eq!(report["summary"]["failed"], 1);
+    assert_eq!(report["summary"]["failed"], 0);
+    assert_eq!(report["summary"]["order_only"], 1);
     assert_eq!(report["summary"]["missing"], 0);
     assert_eq!(report["summary"]["extra"], 0);
     assert_eq!(report["summary"]["rank_swaps"], 2);
+    assert_eq!(report["failures"][0]["severity"], "order_only");
     assert_eq!(report["failures"][0]["rank_swaps"][0]["expected_rank"], 2);
 }
 
@@ -570,6 +652,8 @@ fn real_dataset_verify_all_reports_clean() {
             "--dataset",
             path.to_str().expect("dataset path"),
             "--all",
+            "--expect-sha256",
+            PINNED_BASE_SHA256,
         ])
         .output()
         .expect("verify all");
@@ -591,13 +675,15 @@ fn real_reference_run_reports_clean() {
             path.to_str().expect("dataset path"),
             "--engine",
             "reference",
+            "--expect-sha256",
+            PINNED_BASE_SHA256,
             "--out",
             out.to_str().expect("out path"),
         ])
         .output()
         .expect("reference run");
     assert_eq!(output.status.code(), Some(0), "{}", stdout(&output));
-    assert!(stdout(&output).contains("(repeat 1): 0/1616 cases mismatch any (0 in every run, 0 unstable; 0 errors; 0 missing, 0 extra, 0 rank swaps)"));
+    assert!(stdout(&output).contains("(repeat 1): 0/1616 cases blocked (0 in every run, 0 order-only, 0 unstable; 0 errors; 0 missing, 0 extra, 0 rank swaps)"));
 }
 
 const FAKE_FAISS_WORKER: &str = r#"#!/usr/bin/env python3
@@ -725,11 +811,12 @@ impl Engine for ProvenanceEngine {
 #[test]
 fn engine_config_flows_from_run_to_published_scorecard() {
     let report = run(RunOptions {
-        dataset: Dataset::load(MINI).expect("mini fixture"),
+        dataset: Dataset::load(MINI, None).expect("mini fixture"),
         engine: Box::new(ProvenanceEngine),
         k: 2,
         limit: Some(2),
         repeat: 1,
+        jobs: None,
     })
     .expect("run")
     .report;
@@ -738,7 +825,7 @@ fn engine_config_flows_from_run_to_published_scorecard() {
         "screening": "certified-f64"
     });
     assert_eq!(
-        serde_json::to_value(&report.engine.config_redacted).expect("config json"),
+        serde_json::to_value(&report.engine.config).expect("config json"),
         expected
     );
     let temp = tempfile::tempdir().expect("temp output");
@@ -758,16 +845,13 @@ fn engine_config_flows_from_run_to_published_scorecard() {
     let text = fs::read_to_string(&out).expect("scorecard");
     let scorecard: Value = serde_json::from_str(&text).expect("scorecard json");
     assert_eq!(scorecard["engine"]["config"], expected);
-    assert_eq!(scorecard["tool"]["name"], "knn-audit");
-    assert_eq!(scorecard["tool"]["version"], env!("CARGO_PKG_VERSION"));
+    assert_eq!(scorecard["summary"]["order_only"], 0);
     let mut keys = Vec::new();
     let mut strings = Vec::new();
     collect(&scorecard, &mut keys, &mut strings);
-    assert!(
-        !keys
-            .iter()
-            .any(|key| key == "query" || key == "root" || key == "config_redacted")
-    );
+    assert!(!keys.iter().any(|key| {
+        key == "query" || key == "root" || key == "config_redacted" || key == "created_at"
+    }));
     let config = scorecard["engine"]["config"].as_object().expect("config");
     assert!(config.iter().all(|(key, value)| {
         ["http", "postgres", "password", "/"]

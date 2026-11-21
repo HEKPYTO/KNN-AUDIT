@@ -1,14 +1,16 @@
-use crate::compare::RankSwap;
+use crate::compare::{RankSwap, Severity};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 use std::fmt::Write as _;
 
 pub const SCHEMA: &str = "knn-audit/v1";
+pub const SCORECARD_SCHEMA: &str = "knn-audit-scorecard/v1";
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Report {
     pub schema: String,
-    pub created_at: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub created_at: Option<String>,
     pub dataset: DatasetInfo,
     pub engine: EngineInfo,
     pub k: usize,
@@ -27,7 +29,8 @@ fn default_repeat() -> usize {
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DatasetInfo {
-    pub root: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub root: Option<String>,
     pub base_sha256: String,
     pub base_rows: usize,
     pub cases: usize,
@@ -40,7 +43,7 @@ pub struct EngineInfo {
     pub version: String,
     pub exact_mode: bool,
     pub metric: String,
-    pub config_redacted: BTreeMap<String, String>,
+    pub config: BTreeMap<String, String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -48,6 +51,7 @@ pub struct Summary {
     pub cases: usize,
     pub passed: usize,
     pub failed: usize,
+    pub order_only: usize,
     pub errors: usize,
     pub missing: usize,
     pub extra: usize,
@@ -63,11 +67,13 @@ pub struct CategorySummary {
     pub category: String,
     pub cases: usize,
     pub failed: usize,
+    pub order_only: usize,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct RunSummary {
     pub failed: usize,
+    pub order_only: usize,
     #[serde(default)]
     pub errors: usize,
     pub missing: usize,
@@ -79,7 +85,9 @@ pub struct RunSummary {
 pub struct Failure {
     pub case_id: String,
     pub category: String,
-    pub query: Vec<f32>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub query: Option<Vec<f32>>,
+    pub severity: Severity,
     pub expected_ids: Vec<u64>,
     pub actual_ids: Vec<u64>,
     pub missing_ids: Vec<u64>,
@@ -102,6 +110,25 @@ impl Report {
         Ok(text)
     }
 
+    pub fn publish(&self) -> Result<String, serde_json::Error> {
+        let mut report = self.clone();
+        report.schema = SCORECARD_SCHEMA.to_string();
+        report.created_at = None;
+        report.dataset.root = None;
+        for failure in &mut report.failures {
+            failure.query = None;
+        }
+        report
+            .categories
+            .sort_by(|left, right| left.category.cmp(&right.category));
+        report.failures.sort_by(|left, right| {
+            left.case_id
+                .cmp(&right.case_id)
+                .then_with(|| left.category.cmp(&right.category))
+        });
+        report.to_json()
+    }
+
     pub fn to_html(&self) -> String {
         let mut html = String::new();
         html.push_str("<!doctype html>\n<html lang=\"en\"><head><meta charset=\"utf-8\">");
@@ -116,7 +143,7 @@ impl Report {
             "<h1>knn-audit scorecard</h1><p>{} {} &middot; {} &middot; k={} &middot; repeat {}</p>",
             escape(&self.engine.name),
             escape(&self.engine.version),
-            escape(&self.dataset.root),
+            escape(self.dataset.root.as_deref().unwrap_or("")),
             self.k,
             self.repeat
         );
@@ -124,15 +151,16 @@ impl Report {
             html,
             "<p>base sha256: <code>{}</code><br>created: {}</p>",
             escape(&self.dataset.base_sha256),
-            escape(&self.created_at)
+            escape(self.created_at.as_deref().unwrap_or("")),
         );
         let _ = write!(
             html,
-            "<table><tr><th>cases</th><th>passed</th><th>failed any</th><th>failed all</th><th>errors</th><th>missing</th><th>extra</th><th>rank swaps</th><th>unstable</th></tr>\
-             <tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr></table>",
+            "<table><tr><th>cases</th><th>passed</th><th>blocked</th><th>order-only</th><th>failed all</th><th>errors</th><th>missing</th><th>extra</th><th>rank swaps</th><th>unstable</th></tr>\
+             <tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr></table>",
             self.summary.cases,
             self.summary.passed,
             self.summary.failed,
+            self.summary.order_only,
             self.summary.failed_all,
             self.summary.errors,
             self.summary.missing,
@@ -141,13 +169,14 @@ impl Report {
             self.summary.unstable
         );
         if !self.runs.is_empty() {
-            html.push_str("<h2>Runs</h2><table><tr><th>run</th><th>failed</th><th>errors</th><th>missing</th><th>extra</th><th>rank swaps</th></tr>");
+            html.push_str("<h2>Runs</h2><table><tr><th>run</th><th>blocked</th><th>order-only</th><th>errors</th><th>missing</th><th>extra</th><th>rank swaps</th></tr>");
             for (index, item) in self.runs.iter().enumerate() {
                 let _ = write!(
                     html,
-                    "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>",
+                    "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>",
                     index + 1,
                     item.failed,
+                    item.order_only,
                     item.errors,
                     item.missing,
                     item.extra,
@@ -157,15 +186,16 @@ impl Report {
             html.push_str("</table>");
         }
         html.push_str(
-            "<h2>Categories</h2><table><tr><th>category</th><th>cases</th><th>failed</th></tr>",
+            "<h2>Categories</h2><table><tr><th>category</th><th>cases</th><th>blocked</th><th>order-only</th></tr>",
         );
         for category in &self.categories {
             let _ = write!(
                 html,
-                "<tr><td>{}</td><td>{}</td><td>{}</td></tr>",
+                "<tr><td>{}</td><td>{}</td><td>{}</td><td>{}</td></tr>",
                 escape(&category.category),
                 category.cases,
-                category.failed
+                category.failed,
+                category.order_only
             );
         }
         html.push_str("</table><h2>Failures</h2>");
@@ -180,13 +210,20 @@ impl Report {
                     escape(&failure.case_id),
                     escape(&failure.category)
                 );
+                let _ = write!(html, "<br>severity: {:?}", failure.severity);
                 if let Some(error) = &failure.error {
                     let _ = write!(html, "<br>error: {}", escape(error));
                 }
                 let _ = write!(
                     html,
                     "<br>query: <code>{}</code><br>expected: <code>{}</code><br>actual: <code>{}</code>",
-                    escape(&format!("{:?}", failure.query)),
+                    escape(
+                        &failure
+                            .query
+                            .as_ref()
+                            .map(|query| format!("{query:?}"))
+                            .unwrap_or_default()
+                    ),
                     escape(&format!("{:?}", failure.expected_ids)),
                     escape(&format!("{:?}", failure.actual_ids))
                 );
