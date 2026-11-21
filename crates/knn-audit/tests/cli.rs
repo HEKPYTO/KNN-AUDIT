@@ -300,6 +300,197 @@ fn report_command_rejects_unknown_schema() {
     assert_eq!(output.status.code(), Some(2));
 }
 
+const SECRET_ROOT: &str = "/private/tmp/errpedia-secret-dataset";
+
+fn publish_report() -> Value {
+    serde_json::json!({
+        "schema": "knn-audit/v1",
+        "created_at": "2026-11-21T00:00:00Z",
+        "dataset": {
+            "root": SECRET_ROOT,
+            "base_sha256": "abc123",
+            "base_rows": 32,
+            "cases": 3,
+            "dim": 4
+        },
+        "engine": {
+            "name": "reference",
+            "version": "0.1.0",
+            "exact_mode": true,
+            "metric": "squared_l2",
+            "config_redacted": {"token": "secret-token"}
+        },
+        "k": 2,
+        "repeat": 2,
+        "runs": [{"failed": 3, "errors": 0, "missing": 3, "extra": 2, "rank_swaps": 1}],
+        "summary": {
+            "cases": 3, "passed": 0, "failed": 3, "errors": 0,
+            "missing": 3, "extra": 2, "rank_swaps": 1, "unstable": 1, "failed_all": 2
+        },
+        "categories": [
+            {"category": "zzz", "cases": 1, "failed": 1},
+            {"category": "aaa", "cases": 2, "failed": 2}
+        ],
+        "failures": [
+            {
+                "case_id": "case-b", "category": "aaa",
+                "query": [0.1, 0.2, 0.3, 0.4],
+                "expected_ids": [7, 8], "actual_ids": [7, 9],
+                "missing_ids": [8], "extra_ids": [9],
+                "rank_swaps": [{"id": 7, "expected_rank": 1, "actual_rank": 2}],
+                "distance_gap": 0.125, "error": null,
+                "failed_repetitions": [0, 1], "unstable": true,
+                "unstable_actual_ids": [[7, 9], [9, 7]]
+            },
+            {
+                "case_id": "case-a", "category": "zzz",
+                "query": [1.0, 0.0, 0.0, 0.0],
+                "expected_ids": [1, 2], "actual_ids": [1, 3],
+                "missing_ids": [2], "extra_ids": [3],
+                "rank_swaps": [], "distance_gap": null,
+                "error": "timeout", "failed_repetitions": [1], "unstable": false,
+                "unstable_actual_ids": []
+            },
+            {
+                "case_id": "case-a", "category": "aaa",
+                "query": [0.0, 1.0, 0.0, 0.0],
+                "expected_ids": [4, 5], "actual_ids": [4, 6],
+                "missing_ids": [5], "extra_ids": [6],
+                "rank_swaps": [], "distance_gap": null, "error": null,
+                "failed_repetitions": [], "unstable": false, "unstable_actual_ids": []
+            }
+        ]
+    })
+}
+
+fn collect(value: &Value, keys: &mut Vec<String>, strings: &mut Vec<String>) {
+    match value {
+        Value::Object(entries) => {
+            for (key, child) in entries {
+                keys.push(key.clone());
+                collect(child, keys, strings);
+            }
+        }
+        Value::Array(items) => {
+            for child in items {
+                collect(child, keys, strings);
+            }
+        }
+        Value::String(text) => strings.push(text.clone()),
+        _ => {}
+    }
+}
+
+#[test]
+fn publish_writes_redacted_deterministic_scorecard() {
+    let temp = tempfile::tempdir().expect("temp report");
+    let input = temp.path().join("report.json");
+    fs::write(&input, publish_report().to_string()).expect("report");
+    let first = temp.path().join("first.json");
+    let second = temp.path().join("second.json");
+    for out in [&first, &second] {
+        command()
+            .args([
+                "publish",
+                "--input",
+                input.to_str().expect("input"),
+                "--out",
+                out.to_str().expect("out"),
+            ])
+            .assert()
+            .success();
+    }
+    let first_text = fs::read_to_string(&first).expect("first scorecard");
+    assert_eq!(
+        first_text,
+        fs::read_to_string(&second).expect("second scorecard")
+    );
+    let scorecard: Value = serde_json::from_str(&first_text).expect("scorecard json");
+    assert_eq!(scorecard["schema"], "knn-audit-scorecard/v1");
+    assert_eq!(scorecard["dataset"]["base_sha256"], "abc123");
+    assert_eq!(scorecard["dataset"]["base_rows"], 32);
+    assert_eq!(scorecard["dataset"]["cases"], 3);
+    assert_eq!(scorecard["dataset"]["dim"], 4);
+    assert_eq!(scorecard["engine"]["name"], "reference");
+    assert_eq!(scorecard["engine"]["metric"], "squared_l2");
+    assert_eq!(scorecard["k"], 2);
+    assert_eq!(scorecard["repeat"], 2);
+    assert_eq!(scorecard["runs"].as_array().expect("runs").len(), 1);
+    assert_eq!(scorecard["summary"]["failed"], 3);
+    assert_eq!(scorecard["categories"][0]["category"], "aaa");
+    assert_eq!(scorecard["categories"][1]["category"], "zzz");
+    assert_eq!(scorecard["failures"][0]["case_id"], "case-a");
+    assert_eq!(scorecard["failures"][0]["category"], "aaa");
+    assert_eq!(
+        scorecard["failures"][0]["expected_ids"],
+        serde_json::json!([4, 5])
+    );
+    assert_eq!(
+        scorecard["failures"][2]["expected_ids"],
+        serde_json::json!([7, 8])
+    );
+    let mut keys = Vec::new();
+    let mut strings = Vec::new();
+    collect(&scorecard, &mut keys, &mut strings);
+    assert!(
+        !keys
+            .iter()
+            .any(|key| key == "query" || key == "root" || key == "config_redacted")
+    );
+    assert!(
+        scorecard["failures"]
+            .as_array()
+            .expect("failures")
+            .iter()
+            .all(|failure| failure.get("unstable").is_none())
+    );
+    assert!(
+        !strings
+            .iter()
+            .any(|text| text.contains(SECRET_ROOT) || text.contains("secret-token"))
+    );
+    assert!(!first_text.contains(SECRET_ROOT));
+    let help = command().args(["--help"]).output().expect("help");
+    assert!(stdout(&help).contains("publish"));
+}
+
+#[test]
+fn publish_rejects_wrong_schema() {
+    let temp = tempfile::tempdir().expect("temp report");
+    let input = temp.path().join("report.json");
+    let mut report = publish_report();
+    report["schema"] = serde_json::json!("other");
+    fs::write(&input, report.to_string()).expect("report");
+    let output = command()
+        .args([
+            "publish",
+            "--input",
+            input.to_str().expect("input"),
+            "--out",
+            temp.path().join("scorecard.json").to_str().expect("out"),
+        ])
+        .output()
+        .expect("publish");
+    assert_eq!(output.status.code(), Some(2));
+}
+
+#[test]
+fn publish_missing_input_exits_two() {
+    let temp = tempfile::tempdir().expect("temp report");
+    let input = temp.path().join("absent.json");
+    let output = command()
+        .args([
+            "publish",
+            "--input",
+            input.to_str().expect("input"),
+            "--out",
+            temp.path().join("scorecard.json").to_str().expect("out"),
+        ])
+        .output()
+        .expect("publish");
+    assert_eq!(output.status.code(), Some(2));
+}
+
 #[test]
 fn rank_swap_only_does_not_fail_with_flag() {
     let temp = tempfile::tempdir().expect("temp output");

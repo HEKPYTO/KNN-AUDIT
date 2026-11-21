@@ -71,6 +71,7 @@ and reports squared L2 distances.
 knn-audit dataset verify --dataset <dir> [--sample N | --all] [--k 10]
 knn-audit run --dataset <dir> --engine <reference|qdrant|pgvector|faiss> [options]
 knn-audit report --input results/run.json --html results/run.html
+knn-audit publish --input results/run.json --out results/scorecard.json
 ```
 
 `--limit N` audits only the first N cases.
@@ -80,6 +81,11 @@ and exits `1` when `--fail-on-mismatch` is set and the answer has missing ids,
 extra ids, or adapter errors. Rank swaps are reported in the table, categories
 and report but do not fail the run. Every report carries the dataset sha256;
 each failure carries the query vector, expected ids, and actual ids.
+
+`publish` derives a `knn-audit-scorecard/v1` scorecard from a report. It drops
+query vectors, dataset paths, and adapter configuration so the scorecard can be
+shared without redistributing the dataset; categories and failures are sorted
+for reproducible output.
 
 ## Results
 
