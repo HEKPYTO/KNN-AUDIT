@@ -1,7 +1,6 @@
-use crate::dataset::{Dataset, EXPECTED_BASE_SHA256};
-use crate::report::{Report, SCHEMA};
+use crate::dataset::Dataset;
+use crate::report::{Report, SCHEMA, SCORECARD_SCHEMA};
 use crate::run::{RunOptions, run};
-use crate::scorecard::{SCORECARD_SCHEMA, Scorecard};
 use clap::{Args, Parser, Subcommand};
 use knn_audit_adapters::{Engine, FaissEngine, PgVectorEngine, QdrantEngine, ReferenceEngine};
 use std::fmt::Display;
@@ -52,6 +51,8 @@ struct RunArgs {
     #[arg(long)]
     fail_on_mismatch: bool,
     #[arg(long)]
+    expect_sha256: Option<String>,
+    #[arg(long)]
     jobs: Option<usize>,
     #[arg(long, default_value_t = 10)]
     k: usize,
@@ -81,6 +82,8 @@ enum DatasetCommand {
         all: bool,
         #[arg(long, default_value_t = 10)]
         k: usize,
+        #[arg(long)]
+        expect_sha256: Option<String>,
     },
 }
 
@@ -93,7 +96,8 @@ pub fn main_entry() -> ExitCode {
                 sample,
                 all,
                 k,
-            } => verify(dataset, sample, all, k),
+                expect_sha256,
+            } => verify(dataset, sample, all, k, expect_sha256.as_deref()),
         },
         Command::Run(args) => run_command(args),
         Command::Report { input, html } => report_command(input, html),
@@ -101,8 +105,14 @@ pub fn main_entry() -> ExitCode {
     }
 }
 
-fn verify(dataset: PathBuf, sample: Option<usize>, all: bool, k: usize) -> ExitCode {
-    let result = load(&dataset);
+fn verify(
+    dataset: PathBuf,
+    sample: Option<usize>,
+    all: bool,
+    k: usize,
+    expect_sha256: Option<&str>,
+) -> ExitCode {
+    let result = load(&dataset, expect_sha256);
     let dataset = match result {
         Ok(dataset) => dataset,
         Err(error) => return error_exit(error),
@@ -152,19 +162,12 @@ fn run_command(args: RunArgs) -> ExitCode {
         collection,
         faiss_python,
         repeat,
+        expect_sha256,
     } = args;
     if repeat == 0 {
         return error_exit("--repeat must be positive");
     }
-    if let Some(count) = jobs {
-        if count == 0 {
-            return error_exit("--jobs must be positive");
-        }
-        let _ = rayon::ThreadPoolBuilder::new()
-            .num_threads(count)
-            .build_global();
-    }
-    let dataset = match load(&root) {
+    let dataset = match load(&root, expect_sha256.as_deref()) {
         Ok(dataset) => dataset,
         Err(error) => return error_exit(error),
     };
@@ -187,6 +190,7 @@ fn run_command(args: RunArgs) -> ExitCode {
         k,
         limit,
         repeat,
+        jobs,
     }) {
         Ok(result) => result,
         Err(error) => return error_exit(error),
@@ -214,7 +218,7 @@ fn run_command(args: RunArgs) -> ExitCode {
     }
     println!("{}", result.summary_line);
     let summary = &result.report.summary;
-    if fail_on_mismatch && (summary.missing > 0 || summary.extra > 0 || summary.errors > 0) {
+    if fail_on_mismatch && summary.failed > 0 {
         ExitCode::from(1)
     } else {
         ExitCode::SUCCESS
@@ -282,8 +286,7 @@ fn publish_command(input: PathBuf, out: PathBuf) -> ExitCode {
     if report.schema != SCHEMA {
         return error_exit(format!("unsupported report schema {}", report.schema));
     }
-    let scorecard = Scorecard::from(report);
-    let json = match scorecard.to_json() {
+    let json = match report.publish() {
         Ok(json) => json,
         Err(error) => return error_exit(error),
     };
@@ -294,12 +297,8 @@ fn publish_command(input: PathBuf, out: PathBuf) -> ExitCode {
     ExitCode::SUCCESS
 }
 
-fn load(root: &Path) -> Result<Dataset, crate::dataset::DatasetError> {
-    let dataset = Dataset::load(root)?;
-    if dataset.is_shipped() {
-        dataset.check_checksum(EXPECTED_BASE_SHA256)?;
-    }
-    Ok(dataset)
+fn load(root: &Path, expect_sha256: Option<&str>) -> Result<Dataset, crate::dataset::DatasetError> {
+    Dataset::load(root, expect_sha256)
 }
 
 fn write_file(path: &Path, contents: &str) -> std::io::Result<()> {

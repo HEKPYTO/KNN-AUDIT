@@ -10,6 +10,15 @@ pub struct RankSwap {
     pub actual_rank: usize,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum Severity {
+    Clean,
+    OrderOnly,
+    Mismatch,
+    Error,
+}
+
 #[derive(Debug, Clone, PartialEq, Default)]
 pub struct Comparison {
     pub missing_ids: Vec<u64>,
@@ -19,8 +28,16 @@ pub struct Comparison {
 }
 
 impl Comparison {
-    pub fn is_set_mismatch(&self) -> bool {
-        !self.missing_ids.is_empty() || !self.extra_ids.is_empty()
+    pub fn severity(&self, error: bool) -> Severity {
+        if error {
+            Severity::Error
+        } else if !self.missing_ids.is_empty() || !self.extra_ids.is_empty() {
+            Severity::Mismatch
+        } else if !self.rank_swaps.is_empty() {
+            Severity::OrderOnly
+        } else {
+            Severity::Clean
+        }
     }
 }
 
@@ -67,17 +84,31 @@ pub fn compare(
             extra_ids.push(*id);
         }
     }
-    let distance_gap = match (
-        expected
-            .last()
-            .and_then(|id| vector_for_id(collection, *id)),
-        actual.last().and_then(|id| vector_for_id(collection, *id)),
-    ) {
-        (Some(expected_vector), Some(actual_vector)) if query.len() == collection.dim => {
-            Some(squared_l2_f64(query, actual_vector) - squared_l2_f64(query, expected_vector))
-        }
-        _ => None,
-    };
+    let distance_gap =
+        if (missing_ids.is_empty() && extra_ids.is_empty()) || query.len() != collection.dim {
+            None
+        } else {
+            let distance =
+                |id: u64| vector_for_id(collection, id).map(|vector| squared_l2_f64(query, vector));
+            match (
+                missing_ids
+                    .iter()
+                    .copied()
+                    .map(distance)
+                    .collect::<Option<Vec<_>>>(),
+                extra_ids
+                    .iter()
+                    .copied()
+                    .map(distance)
+                    .collect::<Option<Vec<_>>>(),
+            ) {
+                (Some(missing), Some(extra)) if !missing.is_empty() && !extra.is_empty() => Some(
+                    extra.into_iter().fold(f64::NEG_INFINITY, f64::max)
+                        - missing.into_iter().fold(f64::INFINITY, f64::min),
+                ),
+                _ => None,
+            }
+        };
     Comparison {
         missing_ids,
         extra_ids,

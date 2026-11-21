@@ -1,13 +1,13 @@
-use crate::compare::{self, Comparison, RankSwap};
-use crate::dataset::{Dataset, DatasetError};
+use crate::compare::{self, Comparison, Severity};
+use crate::dataset::{Case, Dataset, DatasetError};
 use crate::report::{
     CategorySummary, DatasetInfo, EngineInfo, Failure, Report, RunSummary, Summary,
 };
 use chrono::{SecondsFormat, Utc};
-use knn_audit_adapters::Engine;
+use knn_audit_adapters::{CollectionView, Engine, Hit};
+use rayon::ThreadPool;
 use rayon::prelude::*;
 use std::collections::BTreeMap;
-use std::sync::Arc;
 
 pub struct RunOptions {
     pub dataset: Dataset,
@@ -15,6 +15,7 @@ pub struct RunOptions {
     pub k: usize,
     pub limit: Option<usize>,
     pub repeat: usize,
+    pub jobs: Option<usize>,
 }
 
 pub struct RunResult {
@@ -22,11 +23,41 @@ pub struct RunResult {
     pub summary_line: String,
 }
 
-struct Outcome {
+struct CaseVerdict {
     category: String,
+    answers: Vec<Vec<u64>>,
+    severities: Vec<Severity>,
     failures: Vec<Option<Failure>>,
-    actual_sets: Vec<Vec<u64>>,
-    unstable: bool,
+    failed_repetitions: Vec<usize>,
+}
+
+impl CaseVerdict {
+    fn observe(&mut self, severity: Severity, ids: Vec<u64>, failure: Option<Failure>) {
+        self.answers.push(ids);
+        self.severities.push(severity);
+        self.failures.push(failure);
+        if blocking(severity) {
+            self.failed_repetitions.push(self.severities.len());
+        }
+    }
+
+    fn first_failure(&self) -> Option<&Failure> {
+        self.failures
+            .iter()
+            .flatten()
+            .find(|failure| blocking(failure.severity))
+            .or_else(|| self.failures.iter().flatten().next())
+    }
+
+    fn unstable_sets(&self) -> Vec<Vec<u64>> {
+        let mut sets: Vec<&Vec<u64>> = Vec::new();
+        for answer in &self.answers {
+            if !sets.iter().any(|seen| same_set(seen, answer)) {
+                sets.push(answer);
+            }
+        }
+        sets.into_iter().cloned().collect()
+    }
 }
 
 pub fn run(options: RunOptions) -> Result<RunResult, DatasetError> {
@@ -36,223 +67,292 @@ pub fn run(options: RunOptions) -> Result<RunResult, DatasetError> {
     if options.repeat == 0 {
         return Err(DatasetError::new("repeat must be positive"));
     }
-    let dataset = options.dataset;
-    let cases: Vec<_> = dataset
-        .cases
+    let selected = select(&options.dataset, options.limit, options.k)?;
+    let collection = options.dataset.collection();
+    let pool = build_pool(options.jobs)?;
+    let mut engine = options.engine;
+    let name = engine.name();
+    let mut verdicts: Vec<CaseVerdict> = selected
         .iter()
-        .take(options.limit.unwrap_or(dataset.cases.len()))
-        .collect();
-    let expected: Vec<Vec<u64>> = cases
-        .iter()
-        .map(|case| dataset.expected_ids(case, options.k))
-        .collect::<Result<_, _>>()?;
-    let collection = dataset.collection();
-    let mut engine: Arc<dyn Engine + Send + Sync> = Arc::from(options.engine);
-    let mut outcomes: Vec<Outcome> = Vec::new();
-    let mut runs: Vec<RunSummary> = Vec::with_capacity(options.repeat);
-
-    for repetition in 0..options.repeat {
-        let prepared = Arc::get_mut(&mut engine)
-            .ok_or_else(|| DatasetError::new("engine is shared before prepare"))?
-            .prepare(&collection);
-        if let Err(error) = prepared {
-            return Err(DatasetError::new(format!(
-                "{} prepare failed: {error}",
-                engine.name()
-            )));
-        }
-        let shared = Arc::clone(&engine);
-        let results: Vec<(String, Option<Failure>, Vec<u64>)> = cases
-            .par_iter()
-            .zip(expected.par_iter())
-            .map(|(case, expected_ids)| {
-                let (actual_ids, failure) = match shared.search(&case.query, options.k) {
-                    Ok(hits) => match parse_ids(&hits) {
-                        Ok(ids) => {
-                            let comparison =
-                                compare::compare(&case.query, &collection, expected_ids, &ids);
-                            let failure = build_failure(case, expected_ids, &ids, comparison, None);
-                            (ids, failure)
-                        }
-                        Err(message) => {
-                            let comparison =
-                                compare::compare(&case.query, &collection, expected_ids, &[]);
-                            (
-                                Vec::new(),
-                                build_failure(case, expected_ids, &[], comparison, Some(message)),
-                            )
-                        }
-                    },
-                    Err(error) => {
-                        let comparison =
-                            compare::compare(&case.query, &collection, expected_ids, &[]);
-                        (
-                            Vec::new(),
-                            build_failure(case, expected_ids, &[], comparison, Some(error.message)),
-                        )
-                    }
-                };
-                (case.category.clone(), failure, actual_ids)
-            })
-            .collect();
-        if repetition == 0 {
-            outcomes = results
-                .iter()
-                .map(|(category, ..)| Outcome {
-                    category: category.clone(),
-                    failures: Vec::with_capacity(options.repeat),
-                    actual_sets: Vec::new(),
-                    unstable: false,
-                })
-                .collect();
-        }
-        let mut failed = 0;
-        let mut missing = 0;
-        let mut extra = 0;
-        let mut rank_swaps = 0;
-        let mut errors = 0;
-        for (outcome, (_, failure, actual_ids)) in outcomes.iter_mut().zip(results) {
-            outcome.failures.push(failure.clone());
-            if !outcome
-                .actual_sets
-                .iter()
-                .any(|seen| same_set(seen, &actual_ids))
-            {
-                outcome.actual_sets.push(actual_ids);
-            }
-            if let Some(item) = failure {
-                failed += 1;
-                missing += item.missing_ids.len();
-                extra += item.extra_ids.len();
-                rank_swaps += item.rank_swaps.len();
-                if item.error.is_some() {
-                    errors += 1;
-                }
-            }
-        }
-        runs.push(RunSummary {
-            failed,
-            errors,
-            missing,
-            extra,
-            rank_swaps,
-        });
-    }
-
-    for outcome in &mut outcomes {
-        outcome.unstable = outcome.actual_sets.len() > 1;
-    }
-    let unstable = outcomes.iter().filter(|outcome| outcome.unstable).count();
-
-    let mut failures: Vec<Failure> = Vec::new();
-    for outcome in &outcomes {
-        let failed_repetitions: Vec<usize> = outcome
-            .failures
-            .iter()
-            .enumerate()
-            .filter_map(|(index, failure)| failure.as_ref().map(|_| index + 1))
-            .collect();
-        if let Some(first) = outcome.failures.iter().flatten().next() {
-            let mut failure = first.clone();
-            failure.failed_repetitions = failed_repetitions;
-            failure.unstable = outcome.unstable;
-            if outcome.unstable {
-                failure.unstable_actual_ids = outcome.actual_sets.clone();
-            }
-            failures.push(failure);
-        }
-    }
-    failures.sort_by(|left, right| {
-        left.case_id
-            .cmp(&right.case_id)
-            .then_with(|| left.category.cmp(&right.category))
-    });
-    let mut category_counts: BTreeMap<String, (usize, usize)> = BTreeMap::new();
-    for outcome in &outcomes {
-        let entry = category_counts
-            .entry(outcome.category.clone())
-            .or_insert((0, 0));
-        entry.0 += 1;
-        if outcome.failures.iter().any(Option::is_some) {
-            entry.1 += 1;
-        }
-    }
-    let categories: Vec<CategorySummary> = category_counts
-        .into_iter()
-        .map(|(category, (count, failed))| CategorySummary {
-            category,
-            cases: count,
-            failed,
+        .map(|(case, _)| CaseVerdict {
+            category: case.category.clone(),
+            answers: Vec::with_capacity(options.repeat),
+            severities: Vec::with_capacity(options.repeat),
+            failures: Vec::with_capacity(options.repeat),
+            failed_repetitions: Vec::new(),
         })
         .collect();
-    let missing: usize = failures
-        .iter()
-        .map(|failure| failure.missing_ids.len())
-        .sum();
-    let extra: usize = failures.iter().map(|failure| failure.extra_ids.len()).sum();
-    let rank_swaps: usize = failures
-        .iter()
-        .map(|failure| failure.rank_swaps.len())
-        .sum();
-    let errors: usize = failures
-        .iter()
-        .filter(|failure| failure.error.is_some())
-        .count();
-    let cases_count = outcomes.len();
-    let failed = outcomes
-        .iter()
-        .filter(|outcome| outcome.failures.iter().any(Option::is_some))
-        .count();
-    let failed_all = outcomes
-        .iter()
-        .filter(|outcome| outcome.failures.iter().all(Option::is_some))
-        .count();
-    let summary = Summary {
-        cases: cases_count,
-        passed: cases_count - failed,
-        failed,
-        errors,
-        missing,
-        extra,
-        rank_swaps,
-        unstable,
-        failed_all,
-    };
-    let name = engine.name().to_string();
-    let version = engine.version();
-    let capabilities = engine.capabilities();
+    let mut runs = Vec::with_capacity(options.repeat);
+    for _ in 0..options.repeat {
+        engine
+            .prepare(&collection)
+            .map_err(|error| DatasetError::new(format!("{name} prepare failed: {error}")))?;
+        let observed = search(&pool, engine.as_ref(), &selected, &collection, options.k);
+        runs.push(summarize_run(&observed));
+        for (verdict, (severity, ids, failure)) in verdicts.iter_mut().zip(observed) {
+            verdict.observe(severity, ids, failure);
+        }
+    }
+
+    let summary = summarize(&verdicts);
+    let categories = summarize_categories(&verdicts);
+    let failures = collect_failures(&verdicts);
     let report = Report {
         schema: crate::report::SCHEMA.to_string(),
-        created_at: Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true),
+        created_at: Some(Utc::now().to_rfc3339_opts(SecondsFormat::Secs, true)),
         dataset: DatasetInfo {
-            root: dataset.root.clone(),
-            base_sha256: dataset.base_sha256.clone(),
-            base_rows: dataset.base_rows,
-            cases: dataset.cases.len(),
-            dim: dataset.dim,
+            root: Some(options.dataset.root.clone()),
+            base_sha256: options.dataset.base_sha256.clone(),
+            base_rows: options.dataset.base_rows,
+            cases: options.dataset.cases.len(),
+            dim: options.dataset.dim,
         },
         engine: EngineInfo {
-            name: name.clone(),
-            version: version.clone(),
-            exact_mode: capabilities.exact_mode,
-            metric: capabilities.distance_metric.as_str().to_string(),
-            config_redacted: engine.config(),
+            name: name.to_string(),
+            version: engine.version(),
+            exact_mode: engine.capabilities().exact_mode,
+            metric: engine.capabilities().distance_metric.as_str().to_string(),
+            config: engine.config(),
         },
         k: options.k,
-        summary,
+        summary: summary.clone(),
         categories,
         failures,
         repeat: options.repeat,
         runs,
     };
     let summary_line = format!(
-        "{name} {version} (repeat {}): {failed}/{cases_count} cases mismatch any ({failed_all} in every run, {unstable} unstable; {errors} errors; {missing} missing, {extra} extra, {rank_swaps} rank swaps)",
-        options.repeat
+        "{name} {} (repeat {}): {}/{} cases blocked ({} in every run, {} order-only, {} unstable; {} errors; {} missing, {} extra, {} rank swaps)",
+        engine.version(),
+        options.repeat,
+        summary.failed,
+        summary.cases,
+        summary.failed_all,
+        summary.order_only,
+        summary.unstable,
+        summary.errors,
+        summary.missing,
+        summary.extra,
+        summary.rank_swaps
     );
     Ok(RunResult {
         report,
         summary_line,
     })
+}
+
+fn select(
+    dataset: &Dataset,
+    limit: Option<usize>,
+    k: usize,
+) -> Result<Vec<(&Case, Vec<u64>)>, DatasetError> {
+    dataset
+        .cases
+        .iter()
+        .take(limit.unwrap_or(dataset.cases.len()))
+        .map(|case| {
+            let expected = dataset.expected_ids(case, k)?;
+            Ok((case, expected))
+        })
+        .collect()
+}
+
+fn build_pool(jobs: Option<usize>) -> Result<ThreadPool, DatasetError> {
+    let mut builder = rayon::ThreadPoolBuilder::new();
+    if let Some(count) = jobs {
+        if count == 0 {
+            return Err(DatasetError::new("--jobs must be positive"));
+        }
+        builder = builder.num_threads(count);
+    }
+    builder
+        .build()
+        .map_err(|error| DatasetError::new(format!("cannot build thread pool: {error}")))
+}
+
+fn search<E: Engine + Sync + ?Sized>(
+    pool: &ThreadPool,
+    engine: &E,
+    selected: &[(&Case, Vec<u64>)],
+    collection: &CollectionView<'_>,
+    k: usize,
+) -> Vec<(Severity, Vec<u64>, Option<Failure>)> {
+    pool.install(|| {
+        selected
+            .par_iter()
+            .map(|(case, expected_ids)| {
+                let (ids, comparison, error) = match engine.search(&case.query, k) {
+                    Ok(hits) => match parse_ids(&hits) {
+                        Ok(ids) => {
+                            let comparison =
+                                compare::compare(&case.query, collection, expected_ids, &ids);
+                            (ids, comparison, None)
+                        }
+                        Err(message) => {
+                            let comparison =
+                                compare::compare(&case.query, collection, expected_ids, &[]);
+                            (Vec::new(), comparison, Some(message))
+                        }
+                    },
+                    Err(error) => {
+                        let comparison =
+                            compare::compare(&case.query, collection, expected_ids, &[]);
+                        (Vec::new(), comparison, Some(error.message))
+                    }
+                };
+                let severity = comparison.severity(error.is_some());
+                let failure = build_failure(case, expected_ids, &ids, comparison, severity, error);
+                (severity, ids, failure)
+            })
+            .collect()
+    })
+}
+
+fn summarize_run(observed: &[(Severity, Vec<u64>, Option<Failure>)]) -> RunSummary {
+    let mut summary = RunSummary {
+        failed: 0,
+        order_only: 0,
+        errors: 0,
+        missing: 0,
+        extra: 0,
+        rank_swaps: 0,
+    };
+    for (severity, _, failure) in observed {
+        match severity {
+            Severity::Error => {
+                summary.failed += 1;
+                summary.errors += 1;
+            }
+            Severity::Mismatch => summary.failed += 1,
+            Severity::OrderOnly => summary.order_only += 1,
+            Severity::Clean => {}
+        }
+        if let Some(failure) = failure {
+            summary.missing += failure.missing_ids.len();
+            summary.extra += failure.extra_ids.len();
+            summary.rank_swaps += failure.rank_swaps.len();
+        }
+    }
+    summary
+}
+
+fn summarize(verdicts: &[CaseVerdict]) -> Summary {
+    let cases = verdicts.len();
+    let failed = verdicts
+        .iter()
+        .filter(|verdict| {
+            verdict
+                .severities
+                .iter()
+                .any(|severity| blocking(*severity))
+        })
+        .count();
+    let order_only = verdicts
+        .iter()
+        .filter(|verdict| {
+            !verdict
+                .severities
+                .iter()
+                .any(|severity| blocking(*severity))
+                && verdict.severities.contains(&Severity::OrderOnly)
+        })
+        .count();
+    let errors = verdicts
+        .iter()
+        .filter(|verdict| verdict.severities.contains(&Severity::Error))
+        .count();
+    let failed_all = verdicts
+        .iter()
+        .filter(|verdict| {
+            verdict
+                .severities
+                .iter()
+                .all(|severity| blocking(*severity))
+        })
+        .count();
+    let unstable_sets: Vec<usize> = verdicts
+        .iter()
+        .map(|verdict| verdict.unstable_sets().len())
+        .collect();
+    let unstable = unstable_sets.iter().filter(|count| **count > 1).count();
+    let first_failures: Vec<&Failure> = verdicts
+        .iter()
+        .filter_map(CaseVerdict::first_failure)
+        .collect();
+    Summary {
+        cases,
+        passed: cases - failed - order_only,
+        failed,
+        order_only,
+        errors,
+        missing: first_failures
+            .iter()
+            .map(|failure| failure.missing_ids.len())
+            .sum(),
+        extra: first_failures
+            .iter()
+            .map(|failure| failure.extra_ids.len())
+            .sum(),
+        rank_swaps: first_failures
+            .iter()
+            .map(|failure| failure.rank_swaps.len())
+            .sum(),
+        unstable,
+        failed_all,
+    }
+}
+
+fn summarize_categories(verdicts: &[CaseVerdict]) -> Vec<CategorySummary> {
+    let mut counts: BTreeMap<String, (usize, usize, usize)> = BTreeMap::new();
+    for verdict in verdicts {
+        let entry = counts.entry(verdict.category.clone()).or_insert((0, 0, 0));
+        entry.0 += 1;
+        if verdict
+            .severities
+            .iter()
+            .any(|severity| blocking(*severity))
+        {
+            entry.1 += 1;
+        } else if verdict.severities.contains(&Severity::OrderOnly) {
+            entry.2 += 1;
+        }
+    }
+    counts
+        .into_iter()
+        .map(|(category, (cases, failed, order_only))| CategorySummary {
+            category,
+            cases,
+            failed,
+            order_only,
+        })
+        .collect()
+}
+
+fn collect_failures(verdicts: &[CaseVerdict]) -> Vec<Failure> {
+    let mut failures = Vec::new();
+    for verdict in verdicts {
+        let Some(first) = verdict.first_failure() else {
+            continue;
+        };
+        let mut failure = first.clone();
+        failure.failed_repetitions = verdict.failed_repetitions.clone();
+        let sets = verdict.unstable_sets();
+        if sets.len() > 1 {
+            failure.unstable = true;
+            failure.unstable_actual_ids = sets;
+        }
+        failures.push(failure);
+    }
+    failures.sort_by(|left, right| {
+        left.case_id
+            .cmp(&right.case_id)
+            .then_with(|| left.category.cmp(&right.category))
+    });
+    failures
+}
+
+fn blocking(severity: Severity) -> bool {
+    matches!(severity, Severity::Mismatch | Severity::Error)
 }
 
 fn same_set(left: &[u64], right: &[u64]) -> bool {
@@ -266,7 +366,7 @@ fn same_set(left: &[u64], right: &[u64]) -> bool {
     left == right
 }
 
-fn parse_ids(hits: &[knn_audit_adapters::Hit]) -> Result<Vec<u64>, String> {
+fn parse_ids(hits: &[Hit]) -> Result<Vec<u64>, String> {
     hits.iter()
         .map(|hit| {
             hit.id
@@ -277,29 +377,26 @@ fn parse_ids(hits: &[knn_audit_adapters::Hit]) -> Result<Vec<u64>, String> {
 }
 
 fn build_failure(
-    case: &crate::dataset::Case,
+    case: &Case,
     expected_ids: &[u64],
     actual_ids: &[u64],
     comparison: Comparison,
+    severity: Severity,
     error: Option<String>,
 ) -> Option<Failure> {
-    if error.is_none()
-        && comparison.missing_ids.is_empty()
-        && comparison.extra_ids.is_empty()
-        && comparison.rank_swaps.is_empty()
-    {
+    if severity == Severity::Clean {
         return None;
     }
-    let rank_swaps: Vec<RankSwap> = comparison.rank_swaps.into_iter().collect();
     Some(Failure {
         case_id: case.case_id.clone(),
         category: case.category.clone(),
-        query: case.query.clone(),
+        query: Some(case.query.clone()),
+        severity,
         expected_ids: expected_ids.to_vec(),
         actual_ids: actual_ids.to_vec(),
         missing_ids: comparison.missing_ids,
         extra_ids: comparison.extra_ids,
-        rank_swaps,
+        rank_swaps: comparison.rank_swaps,
         distance_gap: comparison.distance_gap,
         error,
         failed_repetitions: Vec::new(),
