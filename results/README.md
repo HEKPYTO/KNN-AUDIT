@@ -13,6 +13,10 @@ with a correct id set: they are reported but never block. `unstable` counts
 cases whose returned id set changed across reloads. Engine configuration and
 tool provenance are inside each scorecard.
 
+CI runs on x86_64 GitHub runners, while these scorecards were measured on
+arm64. Exact engine counts can shift with floating-point rounding, so CI uses
+smoke bands, not the arm64 numbers below.
+
 ## Headline
 
 | Engine | Version | Blocking per reload | Blocking every reload | Order-only | Unstable | Errors |
@@ -79,7 +83,7 @@ repository root with `shasum -a 256 -c results/CHECKSUMS.txt`. Review notes:
 
 | Level | Claim allowed |
 |---|---|
-| Evidence | "Qdrant 1.20.2, pgvector 0.8.7 and FAISS 1.12.0 in exact mode were run against the pinned Errpedia 1,616-query top-10 benchmark on 2026-11-21." |
+| Evidence | "Qdrant 1.20.2, pgvector 0.8.7 and FAISS 1.12.0 in exact mode were run against the pinned Errpedia 1,616-query top-10 benchmark on 2026-11-21 on the arm64 workstation." |
 | Result | "Blocking failures occurred on 543-603 Qdrant queries per reload (928-929 distinct across the four committed 10-reload groups), 542 pgvector queries and 541 FAISS queries (510 id-set mismatches, 31 overflow errors). Order-only rank swaps were 219, 4 and 4 cases and did not block." |
 | Inference | "Exact search in these versions is not numerically exact on this dataset." |
 | Forbidden | "ANN recall was measured", "all vector databases are broken", "engine X is unusable", "CI passed so the engines are exact", or treating a rank swap as a set failure. |
