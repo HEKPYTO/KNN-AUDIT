@@ -3,4 +3,5 @@
 04a751c1ca6c91c383f64447096aab06ad45abf120d2df61235e4ff587af6465  results/scorecards/qdrant-1.20.2-repeat10-a.json
 06ddb071ba717827ef9da6d39695d02365e27a6d20e19cead1e8f0856edce9fa  results/scorecards/qdrant-1.20.2-repeat10-b.json
 7e23aa33bd524b21e6e81d7bf19d780ab30d24f190c6f6de8df2c53bc1583cc2  results/scorecards/qdrant-1.20.2-repeat10-c.json
+db613502e58c61e87016597d69982b1d70e2502137977833ef9dd47a5597e3f8  results/scorecards/qdrant-1.20.2-repeat10-d.json
 35245b3524c193cdc75e750b51b13e1de9bddc1f8ae2b9a1b6f379e28ff8dde7  results/scorecards/reference-0.1.0.json
